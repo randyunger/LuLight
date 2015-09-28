@@ -26,10 +26,11 @@ class AkkaTelnet(ip: String, user: String, pwd: String) {
         println("Pwd prompt received")
         o.println(pwd + '\r')
       }
-      case str: String => {
-        println(str)
+      case cmd: String => {
+        println(s"Sending telnet cmd: $cmd")
+        o.println(cmd + '\r')
       }
-      case _       => println("huh?")
+      case _ => println("Unknown cmd to Actor")
     }
   }
 
@@ -39,38 +40,57 @@ class AkkaTelnet(ip: String, user: String, pwd: String) {
   val readT = new Thread() {
     override def run(): Unit = {
       var ch = i.read().toChar
+
+      //Read Login prompt
       while (ch != ':'){
-//        print(ch)
         ch = i.read().toChar
       }
       lutronActor ! "login"
 
-//      println("Login prompt received")
-//      o.println(user + '\r')
-
+      //Read password prompt
       ch = i.read().toChar
       while (ch != ':'){
-//        print(ch)
         ch = i.read().toChar
       }
       lutronActor ! "pwd"
 
-//      println("Pwd prompt received")
-//      o.println(pwd + '\r')
-
+      //Send subsequent output to Actor
       var line = i.readLine()
       while (true){
         println(line)
         line = i.readLine()
-        lutronActor ! line
       }
     }
   }
 
   readT.start()
+
+
+  def execute(cmd: String) = {
+    lutronActor ! cmd
+  }
 }
 
 object A extends App {
   val at = new AkkaTelnet("192.168.1.147", "lutron", "integration")
+  val lu = LuConfig.parseXml
 
+  var continue = true
+  while(continue) {
+    Console.readLine("Enter cmd: ") match {
+
+      case "exit" | "end" | "quit" | ":q" =>
+        println("Exiting...")
+        continue = false
+
+      case cmd: String => {
+        println("Executing telnet cmd")
+        at.execute(cmd)
+      }
+
+      case _ => {
+        println("Doing nothing")
+      }
+    }
+  }
 }
