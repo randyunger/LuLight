@@ -8,7 +8,26 @@ import scala.xml.XML
  * Created by runger on 9/27/15.
  */
 
-case class LightingLoad(id: Int, areaName: String, outputName: String)
+case class LoadSet(loads: Set[LightingLoad]) {
+  def cans = {
+    loads.filter(_.outputName.toLowerCase.contains("cans"))
+  }
+
+  def search(str: String) = {
+    val res = loads.filter {
+      case LightingLoad(id, a, o) => {
+        a.toLowerCase.contains(str.toLowerCase) || o.toLowerCase.contains(str.toLowerCase)
+      }
+    }
+    res
+  }
+}
+
+case class LightingLoad(id: Int, areaName: String, outputName: String) {
+  def level(pct: Int) = {
+    s"#OUTPUT,$id,1,$pct"
+  }
+}
 
 object LuConfig {
   def parseXml = {
@@ -21,7 +40,7 @@ object LuConfig {
       id <- output.attribute("IntegrationID").toSeq.flatten
     } yield LightingLoad(id.text.toInt, areaName.text, outputName.text)
     ll.foreach(println)
-    ll.toSet
+    LoadSet(ll.toSet)
   }
 }
 

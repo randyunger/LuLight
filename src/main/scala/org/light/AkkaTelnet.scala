@@ -2,7 +2,7 @@ package org.light
 
 import java.io.{PrintWriter, InputStreamReader, BufferedReader}
 import java.net.Socket
-
+import scala.collection.immutable.StringOps
 import akka.actor.{Props, ActorSystem, Actor}
 
 /**
@@ -78,6 +78,12 @@ object A extends App {
   var continue = true
   while(continue) {
     Console.readLine("Enter cmd: ") match {
+
+      case search: String if search.startsWith("s ") =>
+        val res = lu.search(search.drop(2))
+        res.foreach(load => {
+          println(load)
+        })
 
       case "exit" | "end" | "quit" | ":q" =>
         println("Exiting...")
