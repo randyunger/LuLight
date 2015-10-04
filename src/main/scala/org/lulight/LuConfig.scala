@@ -14,8 +14,8 @@ case class LoadSet(loads: Set[LightingLoad]) {
 
   def search(str: String) = {
     val res = loads.filter {
-      case LightingLoad(id, a, o) => {
-        a.toLowerCase.contains(str.toLowerCase) || o.toLowerCase.contains(str.toLowerCase)
+      case LightingLoad(id, area, output) => {
+        area.toLowerCase.contains(str.toLowerCase) || output.toLowerCase.contains(str.toLowerCase) || (id.toString == str)
       }
     }
     res
@@ -25,6 +25,12 @@ case class LoadSet(loads: Set[LightingLoad]) {
 case class LightingLoad(id: Int, areaName: String, outputName: String) {
   def level(pct: Int) = {
     s"#OUTPUT,$id,1,$pct"
+  }
+  def off() = {
+    s"#OUTPUT,$id,1,0"
+  }
+  def on() = {
+    s"#OUTPUT,$id,1,100"
   }
 }
 
@@ -41,6 +47,11 @@ object LuConfig {
     ll.foreach(println)
     LoadSet(ll.toSet)
   }
+
+  def apply() = parseXmlOnce
+
+  val parseXmlOnce = parseXml
+
 }
 
 object LuConfigTest extends App {

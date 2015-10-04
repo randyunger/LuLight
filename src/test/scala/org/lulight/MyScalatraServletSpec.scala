@@ -8,7 +8,7 @@ class MyScalatraServletSpec extends ScalatraSpec { def is =
     "should return status 200"                  ! root200^
                                                 end
 
-  addServlet(classOf[MyScalatraServlet], "/*")
+  addServlet(classOf[LutronServlet], "/*")
 
   def root200 = get("/") {
     status must_== 200

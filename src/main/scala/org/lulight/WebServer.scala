@@ -1,42 +1,22 @@
-package org.light
+package org.lulight
+
+import org.eclipse.jetty.server.Server
+import org.eclipse.jetty.webapp.WebAppContext
 
 /**
- * Created by runger on 9/27/15.
+ * Created by Unger on 10/4/15.
  */
-
-import org.mortbay.jetty.Server
-import org.mortbay.jetty.webapp.WebAppContext
-import org.scalatra._
-import scalate.ScalateSupport
-
-class Endpoints extends ScalatraServlet with ScalateSupport {
-
-  get("/") {
-    <h1>Hello, world!</h1>
-  }
-
-}
-
 object WebServerRunner extends App with LocalServer {
   private var continue = true
-
-//  val sslParamPrefix = "--ssl="
-//  val sslPortNumber = args.find(_ startsWith sslParamPrefix).map(str => str.drop(sslParamPrefix.length).tryToInt.getOrElse {
-//    throw new IllegalArgumentException(s"--ssl port must be int-able; $str is not intable.")
-//  })
 
   withIsolatedWebServer() { context=>
     /**
      * You can add handlers here so that you can do quick things to the runtime without restarting the server.
      */
     while(continue) {
-//      if(sslPortNumber.isDefined) {
-//        println("SSL note: If you don't want applications to warn you constantly about an untrusted certificate")
-//        println("for your local server, you can add the following .crt path to your OS X Keychain as 'always trust'.")
-//        println("Be sure to add it to the 'login' group there.")
-//      }
 
       Console.readLine("Say 'cache' and hit enter to ditch permacacher and ehcache. Say 'exit' and hit enter to exit.\nWebServer> ") match {
+
         case "exit" | "end" | "quit" | ":q" =>
           println("Exiting...")
           continue = false
@@ -98,8 +78,7 @@ trait LocalServer {
       //      }
 
       val testClassPath = this.getClass.getClassLoader.getResource(".").toString
-      val contextPath = ""
-      val webappcontext = new WebAppContext(testClassPath + "../../../src/main/webapp", contextPath)
+      val webappcontext = new WebAppContext(testClassPath + "../../../src/main/webapp", "")
       webappcontext.setServer(newServer)
       newServer.setHandler(webappcontext)
       newServer.start()
@@ -111,18 +90,5 @@ trait LocalServer {
   def stopServer() {
     println("Stopping web server")
     server.map(_.stop())
-  }
-}
-
-import org.scalatra._
-import javax.servlet.ServletContext
-
-class ScalatraBootstrap extends LifeCycle {
-  override def init(context: ServletContext) {
-    println("")
-//    context.mount(new CookiesExample, "/cookies-example")
-//    context.mount(new FileUploadExample, "/upload")
-//    context.mount(new FilterExample, "/")
-//    context.mount(new HttpExample, "/*")
   }
 }

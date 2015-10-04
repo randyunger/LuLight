@@ -8,6 +8,18 @@ import akka.actor.{Props, ActorSystem, Actor}
 /**
  * Created by Unger on 9/30/15.
  */
+
+object TelnetClient {
+
+  val instance = new TelnetClient("192.168.1.147", "lutron", "integration")
+
+  def apply() = {
+    instance
+  }
+
+
+}
+
 class TelnetClient(ip: String, user: String, pwd: String) {
 
   val sock = new Socket(ip, 23)

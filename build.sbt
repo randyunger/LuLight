@@ -22,6 +22,8 @@ libraryDependencies ++= Seq(
   ,"org.scala-lang.modules" %% "scala-xml" % "1.0.3"
   ,"org.mortbay.jetty" % "jetty-util" % "6.1.26" % "compile"
   ,"org.mortbay.jetty" % "jetty" % "6.1.26" % "compile"
+  ,"org.eclipse.jetty" % "jetty-server" % "9.3.4.RC0"
+  ,"org.eclipse.jetty" % "jetty-webapp" % "9.3.4.RC0"
 //  ,"org.eclipse.jetty" % "jetty-server" % "7.6.8.v20121106"
 //  ,"org.eclipse.jetty" % "jetty-server" % "9.3.3.v20150827"
 //  ,"org.eclipse.jetty" %% "jetty-webapp" % "8.1.8.v20121106" % "container"
