@@ -20,6 +20,7 @@ class LutronServlet extends LuStack {
     loads.foreach (load =>{
       TelnetClient().execute(load.on())
     })
+      loads.mkString("<br/>")
   }
 
   get("/off/:id") {
@@ -28,6 +29,7 @@ class LutronServlet extends LuStack {
     loads.foreach (load =>{
       TelnetClient().execute(load.off())
     })
+    loads.mkString("<br/>")
   }
 
 }

@@ -7,6 +7,15 @@ import org.eclipse.jetty.webapp.WebAppContext
  * Created by Unger on 10/4/15.
  */
 object WebServerRunner extends App with LocalServer {
+
+  new Thread {
+    val tc = TelnetClient()
+  }.start()
+
+  new Thread {
+    val lu = LuConfig()
+  }.start()
+
   private var continue = true
 
   withIsolatedWebServer() { context=>
