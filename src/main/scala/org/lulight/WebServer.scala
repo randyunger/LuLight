@@ -6,15 +6,17 @@ import org.eclipse.jetty.webapp.WebAppContext
 /**
  * Created by Unger on 10/4/15.
  */
-object WebServerRunner extends App with LocalServer {
+object WebServerRunner extends App with LocalServer with Logging {
 
-  new Thread {
-    val tc = TelnetClient()
-  }.start()
-
-  new Thread {
-    val lu = LuConfig()
-  }.start()
+//  new Thread {
+//    info("Starting telnet")
+//    val tc = TelnetClient()
+//  }.start()
+//
+//  new Thread {
+//    info("Reading config")
+//    val lu = LuConfig()
+//  }.start()
 
   private var continue = true
 
@@ -37,7 +39,7 @@ object WebServerRunner extends App with LocalServer {
   }
 }
 
-trait LocalServer {
+trait LocalServer extends Logging {
   val webappcontext = new WebAppContext()
   var server: Option[Server] = None
   val defaultHttpPort = 8080
@@ -51,14 +53,14 @@ trait LocalServer {
       startServer(portNumber, sslPortNumber)
     }
     catch {
-      case t: Throwable => println(t.getMessage)
+      case t: Throwable => info(t.getMessage)
     }
     try {
       work(webappcontext)
     }
     catch {
       case t: Throwable if keepAlive => {
-        println("Test failed. Keeping server alive anyway.")
+        info("Test failed. Keeping server alive anyway.")
         thrownEx = Some(t)
       }
     }
@@ -97,7 +99,7 @@ trait LocalServer {
   }
 
   def stopServer() {
-    println("Stopping web server")
+    info("Stopping web server")
     server.map(_.stop())
   }
 }

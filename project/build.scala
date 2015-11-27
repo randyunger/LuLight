@@ -4,30 +4,56 @@ import org.scalatra.sbt._
 import org.scalatra.sbt.PluginKeys._
 import com.mojolly.scalate.ScalatePlugin._
 import ScalateKeys._
+//import sbtassembly.AssemblyKeys._
+//import sbtassembly.AssemblyPlugin.autoImport._
 
-object LuBuild extends Build {
-  val Organization = "org.lulight"
-  val Name = "Lu"
-  val Version = "0.1.0-SNAPSHOT"
+object LuLightBuild extends Build {
+  val Name = "LuLight"
+  //  val Version = "0.1.1"
   val ScalaVersion = "2.11.6"
   val ScalatraVersion = "2.4.0-RC2-2"
+  val jettyVersion = "9.3.5.v20151012"
+
+  lazy val commonSettings = Seq(
+    version := "0.1.1",
+    organization := "org.runger.lulight",
+    scalaVersion := ScalaVersion
+  )
+
+  resolvers += Resolver.jcenterRepo
+  resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases"
+  //  enablePlugins(TomcatPlugin)
+
+  lazy val app = (project in file("app")).
+    settings(commonSettings: _*).
+    settings(
+//      assemblyJarName in assembly := "LuLight.jar",
+//      test in assembly := {},
+//      mainClass in assembly := Some("org.runger.")
+    )
 
   lazy val project = Project (
-    "lu",
+    "LuLight",
     file("."),
-    settings = ScalatraPlugin.scalatraSettings ++ scalateSettings ++ Seq(
-      organization := Organization,
+    settings = ScalatraPlugin.scalatraSettings ++ scalateSettings ++ commonSettings ++ Seq(
+      //      organization := Organization,
       name := Name,
-      version := Version,
-      scalaVersion := ScalaVersion,
+      //      version := Version,
+      //      scalaVersion := ScalaVersion,
       resolvers += Classpaths.typesafeReleases,
       resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases",
       libraryDependencies ++= Seq(
-        "org.scalatra" %% "scalatra" % ScalatraVersion
+        "org.scala-lang" % "scala-library" % ScalaVersion
+        ,"org.scala-lang" % "scala-reflect" % ScalaVersion
+        ,"org.scala-lang" % "scala-compiler" % ScalaVersion
+        ,"org.scalatra" %% "scalatra" % ScalatraVersion
         ,"org.scalatra" %% "scalatra-scalate" % ScalatraVersion
         ,"org.scalatra" %% "scalatra-specs2" % ScalatraVersion % "test"
-        ,"ch.qos.logback" % "logback-classic" % "1.1.2" % "runtime"
-        ,"org.eclipse.jetty" % "jetty-webapp" % "9.2.10.v20150310" % "container"
+        ,"org.eclipse.jetty" % "jetty-util" % jettyVersion
+        ,"org.eclipse.jetty" % "jetty-webapp" % jettyVersion
+        ,"org.eclipse.jetty" % "jetty-server" % jettyVersion
+        ,"org.eclipse.jetty" % "jetty-servlet" % jettyVersion
+        ,"ch.qos.logback" % "logback-classic" % "1.1.2"
         ,"javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided"
         ,"commons-net" % "commons-net" % "2.0"
         ,"com.typesafe.akka" % "akka-actor_2.11" % "2.3.11"

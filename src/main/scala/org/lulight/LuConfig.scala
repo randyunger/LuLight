@@ -34,9 +34,12 @@ case class LightingLoad(id: Int, areaName: String, outputName: String) {
   }
 }
 
-object LuConfig {
+object LuConfig extends Logging {
+
+  val repeaterIpAddress = "192.168.1.2"
+
   def parseXml = {
-    val xx = XML.load(new URL("http://192.168.1.147/DbXmlInfo.xml"))
+    val xx = XML.load(new URL(s"http://$repeaterIpAddress/DbXmlInfo.xml"))
     val ll = for {
       area <- xx \\ "Area" if !area.attribute("Name").exists(_.exists(_.text == "MonteMar"))
       output <- area \\ "Output"
@@ -44,7 +47,7 @@ object LuConfig {
       outputName <- output.attribute("Name").toSeq.flatten
       id <- output.attribute("IntegrationID").toSeq.flatten
     } yield LightingLoad(id.text.toInt, areaName.text, outputName.text)
-    ll.foreach(println)
+    ll.foreach(l => info(l.toString))
     LoadSet(ll.toSet)
   }
 
