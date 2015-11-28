@@ -1,0 +1,41 @@
+body {
+    padding-top: 50px;
+}
+.main {
+    padding: 40px 15px;
+    /*text-align: center;*/
+}
+
+.area {
+
+}
+
+.load {
+    margin-left: 50px;
+    /*width: 100px;*/
+}
+
+.load .name {
+    /*width: 100px;*/
+}
+
+.level {
+    margin-left: 50px;
+}
+
+.slider {
+    /*float: right;*/
+}
+
+.slider input[type="range"] {
+    display: inline;
+}
+
+
+
+/*.player :nth-child(even){*/
+    /*background-color: #bbcadc;*/
+/*}*/
+/*.player :nth-child(odd){*/
+    /*background-color: #ffffff;*/
+/*}*/

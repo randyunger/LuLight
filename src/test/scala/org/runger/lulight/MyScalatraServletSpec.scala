@@ -1,4 +1,4 @@
-package org.lulight
+package org.runger.lulight
 
 import org.scalatra.test.specs2._
 

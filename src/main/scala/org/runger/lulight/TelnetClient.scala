@@ -1,4 +1,4 @@
-package org.lulight
+package org.runger.lulight
 
 import java.io.{PrintWriter, InputStreamReader, BufferedReader}
 import java.net.Socket
@@ -23,6 +23,27 @@ object TelnetClient {
 
 }
 
+object TelnetDebug extends App {
+  val ip = "192.168.1.2"
+  val user="lutron"
+  val pwd = "integration"
+  val telnetPort = 23
+  val sock = new Socket(ip, telnetPort)
+  val i = new BufferedReader(new InputStreamReader(sock.getInputStream, "US-ASCII"))
+  val o = new PrintWriter(sock.getOutputStream, true)
+  var char = 102.toChar
+  while (char!=':') {
+    char = i.read().toChar
+    print(char.toInt + "\t" + char)
+  }
+  o.println(user + '\r')
+  while (char!=':') {
+    char = i.read().toChar
+    print(char)
+  }
+  o.println(pwd + '\r')
+}
+
 class TelnetClient(ip: String, user: String, pwd: String) extends Logging {
 
   val telnetPort = 23
@@ -32,7 +53,7 @@ class TelnetClient(ip: String, user: String, pwd: String) extends Logging {
   val sock = new Socket(ip, telnetPort)
   info(s"Connected to $ip port $telnetPort")
 
-  val i = new BufferedReader(new InputStreamReader(sock.getInputStream))
+  val i = new BufferedReader(new InputStreamReader(sock.getInputStream, "US-ASCII"))
   val o = new PrintWriter(sock.getOutputStream, true)
 
   class LutronActor extends Actor {

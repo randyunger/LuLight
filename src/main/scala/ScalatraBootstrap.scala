@@ -1,4 +1,5 @@
-import org.lulight._
+
+import org.runger.lulight.{TelnetClient, LutronServlet}
 import org.scalatra._
 import javax.servlet.ServletContext
 

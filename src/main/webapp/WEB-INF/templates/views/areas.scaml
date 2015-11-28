@@ -1,0 +1,12 @@
+- import org.runger.lulight.LightingLoad
+
+- attributes("title") = "Areas - LuLight"
+
+-@ val areas: Set[String]
+
+- for(area <- areas)
+    .area
+        %h2= {area}
+
+%script(type="text/javascript" src="js/jquery-2.1.4.min.js")
+

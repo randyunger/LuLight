@@ -1,0 +1,28 @@
+- import org.runger.lulight.LightingLoad
+- import org.runger.lulight.LoadSet
+
+- attributes("title") = "Loads - LuLight"
+
+-@ val loadSet: LoadSet
+-@ val byArea: Map[String, Set[LightingLoad]]
+
+- for(areaName <- loadSet.areas)
+    .area
+        %h2= {areaName}
+        - for(loads <- byArea.get(areaName))
+            - for(load <- loads)
+                .load
+                    %span.name
+                        #{load.outputName}
+                    %span.id
+                        #{load.id}
+                    %span.level
+                        0
+                    %span.slider
+                        %input(type="range" name={load.id})
+
+%input
+
+%script(type="text/javascript" src="js/jquery-2.1.4.min.js")
+%script(type="text/javascript" src="js/loads.js")
+

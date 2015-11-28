@@ -1,13 +1,26 @@
-package org.lulight
+package org.runger.lulight
 
 import org.slf4j.LoggerFactory
 
 /**
  * Created by Unger on 11/27/15.
  */
-class Utils {
+
+object Utils {
+
+  implicit class StrUtils(val str: String) extends AnyVal {
+    def tryToInt = {
+      try {
+        Option(str.toInt)
+      } catch {
+        case e: Exception => None
+      }
+
+    }
+  }
 
 }
+
 
 
 trait Logging {

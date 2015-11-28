@@ -1,4 +1,4 @@
-package org.lulight
+package org.runger.lulight
 
 /**
  * Created by Unger on 9/30/15.

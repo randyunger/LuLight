@@ -1,4 +1,4 @@
-package org.lulight
+package org.runger.lulight
 
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.webapp.WebAppContext
@@ -8,15 +8,15 @@ import org.eclipse.jetty.webapp.WebAppContext
  */
 object WebServerRunner extends App with LocalServer with Logging {
 
-//  new Thread {
-//    info("Starting telnet")
-//    val tc = TelnetClient()
-//  }.start()
-//
-//  new Thread {
-//    info("Reading config")
-//    val lu = LuConfig()
-//  }.start()
+  new Thread {
+    info("Starting telnet")
+    val tc = TelnetClient()
+  }.start()
+
+  new Thread {
+    info("Reading config")
+    val lu = LuConfig()
+  }.start()
 
   private var continue = true
 
