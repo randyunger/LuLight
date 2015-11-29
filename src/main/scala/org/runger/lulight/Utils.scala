@@ -15,8 +15,16 @@ object Utils {
       } catch {
         case e: Exception => None
       }
-
     }
+
+    def tryToFloat = {
+      try {
+        Option(str.toFloat)
+      } catch {
+        case e: Exception => None
+      }
+    }
+
   }
 
 }

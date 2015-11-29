@@ -59,6 +59,7 @@ object LuLightBuild extends Build {
         ,"com.typesafe.akka" % "akka-actor_2.11" % "2.3.11"
         ,"com.typesafe.akka" % "akka-testkit_2.11" % "2.3.11" % "test"
         ,"org.scala-lang.modules" %% "scala-xml" % "1.0.3"
+        ,"com.typesafe.play" % "play-json_2.11" % "2.5.0-M1"
       ),
       scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
         Seq(

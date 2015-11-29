@@ -3,12 +3,8 @@
  */
 
 $(document).ready(function(){
-    $("input").change(function() {
+    $("input.range").change(function() {
         $(this).parent().siblings(".level").text(this.value);
-
-        //var onOff = "on";
-        //if(this.value >= 50)
-        //    onOff = "off";
 
         var url= "set/" + this.name + "/" + this.value;
 
@@ -16,42 +12,30 @@ $(document).ready(function(){
             url: url,
             type: 'POST'
         });
-        //var enable = $(this).is(":checked");
-        //var output = $(this).attr("outputId");
-        //
-        //if(enable) {
-        //    var input = $(this).attr("inputId");
-        //    var url = "tie/"+output+"/"+input;
-        //    $.ajax({
-        //        url: url,
-        //        type: 'POST'
-        //        //data: { strID:$(this).attr("id"), strState:state }
-        //    });
-        //} else {
-        //    var url = "tie/"+output;
-        //    $.ajax({
-        //        url: url,
-        //        type: 'DELETE'
-        //    });
-        //}
-
-
     });
 });
 
 $(document).ready(function(){
-    $("#allOff").click(function() {
-        var url = "tie";
-        $.ajax({
-            url: url,
-            type: 'DELETE'
-        });
-        location.reload();
+    $("#toggleId").change(function() {
+        $(".id").css("visibility", "visible")
     })
 });
 
 $(document).ready(function(){
-    $("#refresh").click(function() {
-        location.reload();
-    })
+    var url = "/state";
+    $.ajax({
+        url: url
+    }).done(function(state) {
+        window.state = state;
+        setRangesFromState(state);
+    });
 });
+
+function setRangesFromState(state) {
+    $(".range").each(function(ix, slider){
+        var loadId = slider.name;
+        var level = state[loadId].level;
+        slider.value = level;
+        $(slider).parent().siblings(".level").text(level);
+    })
+}

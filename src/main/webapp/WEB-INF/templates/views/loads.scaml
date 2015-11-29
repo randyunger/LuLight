@@ -1,10 +1,16 @@
 - import org.runger.lulight.LightingLoad
 - import org.runger.lulight.LoadSet
+- import org.runger.lulight.LoadState
+- import org.runger.lulight.ConcMap
 
 - attributes("title") = "Loads - LuLight"
 
 -@ val loadSet: LoadSet
 -@ val byArea: Map[String, Set[LightingLoad]]
+-@ val fullStateJson: String
+
+%h2
+    Hi
 
 - for(areaName <- loadSet.areas)
     .area
@@ -19,9 +25,18 @@
                     %span.level
                         0
                     %span.slider
-                        %input(type="range" name={load.id})
+                        %input.range(type="range" name={load.id} id={"range"+load.id})
 
-%input
+%label
+    %input#toggleId(type="checkbox")
+    Show Ids
+
+%div= fullStateJson
+
+%script(type="application/json" id="fullStateScript") =fullStateJson
+
+/:javascript
+/    #{fullStateJson}
 
 %script(type="text/javascript" src="js/jquery-2.1.4.min.js")
 %script(type="text/javascript" src="js/loads.js")

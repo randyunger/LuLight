@@ -315,7 +315,7 @@ public class LuBuff extends Reader {
                 charLoop:
                 for (i = nextChar; i < nChars; i++) {
                     c = cb[i];
-                    if ((c == '\n') || (c == '\r')) {
+                    if ((c == '\0') || (c == '\n') || (c == '\r')) {
                         eol = true;
                         break charLoop;
                     }

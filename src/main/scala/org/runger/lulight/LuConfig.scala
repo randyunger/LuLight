@@ -1,6 +1,8 @@
 package org.runger.lulight
 
 import java.net.URL
+import play.api.libs.json.{Json, JsValue, Writes}
+
 import scala.xml.XML
 
 /**
@@ -22,12 +24,18 @@ case class LoadSet(loads: Set[LightingLoad]) {
   }
 
   def areas = loads.map(_.areaName)
+
+  val byId = loads.map(l => l.id -> l).toMap
+}
+
+object LightingLoad {
+//  implicit val lightingLoadWrites = new Writes[LightingLoad] {
+//    override def writes(o: LightingLoad): JsValue =
+//  }
+  implicit val lightingLoadFormat = Json.format[LightingLoad]
 }
 
 case class LightingLoad(id: Int, areaName: String, outputName: String) {
-  def level(pct: Int) = {
-    s"#OUTPUT,$id,1,$pct"
-  }
   def off() = {
     s"#OUTPUT,$id,1,0"
   }
@@ -36,6 +44,9 @@ case class LightingLoad(id: Int, areaName: String, outputName: String) {
   }
   def set(level: Int) = {
     s"#OUTPUT,$id,1,$level"
+  }
+  def getState() = {
+    s"?OUTPUT,$id,1"
   }
 }
 

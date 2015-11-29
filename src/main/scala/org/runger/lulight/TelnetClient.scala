@@ -3,6 +3,7 @@ package org.runger.lulight
 import java.io.{PrintWriter, InputStreamReader, BufferedReader}
 import java.net.Socket
 import akka.actor.{Props, ActorSystem, Actor}
+import scala.collection.mutable
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -29,7 +30,7 @@ object TelnetDebug extends App {
   val pwd = "integration"
   val telnetPort = 23
   val sock = new Socket(ip, telnetPort)
-  val i = new BufferedReader(new InputStreamReader(sock.getInputStream, "US-ASCII"))
+  val i = new LuBuff(new InputStreamReader(sock.getInputStream, "US-ASCII"))
   val o = new PrintWriter(sock.getOutputStream, true)
   var char = 102.toChar
   while (char!=':') {
@@ -39,7 +40,7 @@ object TelnetDebug extends App {
   o.println(user + '\r')
   while (char!=':') {
     char = i.read().toChar
-    print(char)
+    print(char.toInt + "\t" + char)
   }
   o.println(pwd + '\r')
 }
@@ -53,7 +54,7 @@ class TelnetClient(ip: String, user: String, pwd: String) extends Logging {
   val sock = new Socket(ip, telnetPort)
   info(s"Connected to $ip port $telnetPort")
 
-  val i = new BufferedReader(new InputStreamReader(sock.getInputStream, "US-ASCII"))
+  val i = new LuBuff(new InputStreamReader(sock.getInputStream, "US-ASCII"))
   val o = new PrintWriter(sock.getOutputStream, true)
 
   class LutronActor extends Actor {
@@ -88,6 +89,7 @@ class TelnetClient(ip: String, user: String, pwd: String) extends Logging {
     override def run(): Unit = {
 
       val chBuff = new StringBuilder(200)
+      val lineBuff = mutable.Buffer.empty[String]
 
       var ch = i.read().toChar
       chBuff.append(ch)
@@ -111,21 +113,28 @@ class TelnetClient(ip: String, user: String, pwd: String) extends Logging {
       lutronActor ! "pwd"
 
       //Send subsequent output to Actor
-      ch = i.read().toChar
-      chBuff.append(ch)
+//      ch = i.read().toChar
+      //      chBuff.append(ch)
+      var line = i.readLine()
+      info(line)
+      lineBuff.append(line)
       while (true){
         //Check for post-login string
-        if(!hasLoggedIn && chBuff.indexOf("GNET") > -1) {
+//        if(!hasLoggedIn && chBuff.indexOf("GNET") > -1) {
+        if(!hasLoggedIn && line.contains("GNET")) {
+          info("We've received log in confirmation!")
           hasLoggedIn = true
         }
-        ch = i.read().toChar
-        chBuff.append(ch)
-        val str = chBuff.toString()
-        if(chBuff.length > 2000) {
-          val tmp = chBuff.takeRight(1000)
-          chBuff.clear()
-          chBuff.append(tmp)
-        }
+        line = i.readLine()
+        info(s"rcv line: $line")
+        lineBuff.append(line)
+        LuStateTracker().update(line)
+//        val str = chBuff.toString()
+//        if(chBuff.length > 2000) {
+//          val tmp = chBuff.takeRight(1000)
+//          chBuff.clear()
+//          chBuff.append(tmp)
+//        }
 //        info(s"rcv: $chBuff")
       }
     }

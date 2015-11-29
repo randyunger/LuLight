@@ -1,6 +1,7 @@
 package org.runger.lulight
 
 import org.scalatra._
+import play.api.libs.json.Json
 import scalate.ScalateSupport
 import Utils._
 
@@ -59,7 +60,21 @@ class LutronServlet extends LuStack with Logging {
     contentType="text/html"
     val loadSet = LuConfig()
     val byArea = LuConfig().loads.groupBy(_.areaName)
-    scaml("loads", "loadSet" -> LuConfig(), "byArea" -> byArea)
+    val fullState = LuStateTracker().fullState(TelnetClient(), 3, 1000).toMap
+    val fullStateById = fullState.map{ case(k, v) => (k.id.toString, v)}
+
+    val fullStateJson = Json.asciiStringify(Json.toJson(fullStateById))
+    scaml("loads", "loadSet" -> LuConfig(), "byArea" -> byArea, "fullStateJson" -> fullStateJson)
+  }
+  
+  get("/state") {
+    contentType = "application/json"
+
+    val fullState = LuStateTracker().fullState(TelnetClient(), 3, 1000).toMap
+    val fullStateById = fullState.map{ case(k, v) => (k.id.toString, v)}
+
+    val fullStateJson = Json.asciiStringify(Json.toJson(fullStateById))
+    fullStateJson
   }
 
 }
