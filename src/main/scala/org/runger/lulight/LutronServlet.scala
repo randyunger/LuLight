@@ -50,6 +50,11 @@ class LutronServlet extends LuStack with Logging {
     loads.mkString("<br/>")
   }
 
+  get("/reload") {
+    contentType = "application/text"
+    LuConfig.reload()
+  }
+
   get("/areas") {
     contentType="text/html"
     val areas = LuConfig().areas
@@ -66,7 +71,7 @@ class LutronServlet extends LuStack with Logging {
     val fullStateJson = Json.asciiStringify(Json.toJson(fullStateById))
     scaml("loads", "loadSet" -> LuConfig(), "byArea" -> byArea, "fullStateJson" -> fullStateJson)
   }
-  
+
   get("/state") {
     contentType = "application/json"
 

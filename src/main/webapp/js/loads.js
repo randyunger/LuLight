@@ -22,7 +22,7 @@ $(document).ready(function(){
 });
 
 $(document).ready(function(){
-    var url = "/state";
+    var url = "state";
     $.ajax({
         url: url
     }).done(function(state) {
