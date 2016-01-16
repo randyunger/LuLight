@@ -105,8 +105,7 @@ object LuConfig extends Logging {
 
   val luConfigXml = XML.load(new URL(s"http://$repeaterIpAddress/DbXmlInfo.xml"))
 
-  def parseXml = {
-
+  def parseXml() = {
     val ll = for {
       area <- luConfigXml \\ "Area" if !area.attribute("Name").exists(_.exists(_.text == "MonteMar"))
       output <- area \\ "Output"
@@ -120,7 +119,12 @@ object LuConfig extends Logging {
 
   def apply() = parseXmlOnce
 
-  val parseXmlOnce = parseXml
+  var parseXmlOnce = parseXml()
+
+  def reload() = {
+    parseXmlOnce = parseXml()
+    parseXmlOnce
+  }
 
 }
 
