@@ -40,7 +40,7 @@ object LuStateTracker extends Logging {
     prodState
   }
 
-  val prodState = new LuStateTracker(LuConfig())
+  val prodState = new LuStateTracker(LuConfig().state)
 }
 
 class LuStateTracker(config: LoadSet) extends Logging {
@@ -71,16 +71,17 @@ class LuStateTracker(config: LoadSet) extends Logging {
     config.loads diff state.keySet
   }
 
-  def fullState(client: TelnetClient, tries: Int, delay: Int): ConcMap[LightingLoad, LoadState]  = {
+  def fullState(executor: String => Unit, tries: Int, delay: Int): ConcMap[LightingLoad, LoadState]  = {
     val unknown = unknownLoads()
     if (unknown.size > 0) {
       if(tries > 0) {
         unknown.foreach(load => {
           val cmd = load.getState()
-          client.execute(cmd)
+//          client.execute(cmd)
+          executor(cmd)
         })
         Thread.sleep(delay)
-        fullState(client, tries-1, delay)
+        fullState(executor, tries-1, delay)
       }
       else {
         info(s"Not able to get state within $tries tries")

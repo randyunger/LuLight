@@ -6,17 +6,25 @@ import org.eclipse.jetty.webapp.WebAppContext
 /**
  * Created by Unger on 10/4/15.
  */
-object WebServerRunner extends App with LocalServer with Logging {
 
+object LocalWeb extends Web with App {
+
+}
+
+object WebServerRunner extends Web with App {
   new Thread {
     info("Starting telnet")
-    val tc = TelnetClient()
+    val tc = CommandExecutor()
   }.start()
 
   new Thread {
     info("Reading config")
     val lu = LuConfig()
   }.start()
+
+}
+
+trait Web extends LocalServer with Logging {
 
   private var continue = true
 

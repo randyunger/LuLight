@@ -18,18 +18,18 @@ class LutronServlet extends LuStack with Logging {
 
   get("/on/:id") {
     val id = params("id")
-    val loads = LuConfig().search(id)
+    val loads = LuConfig().state.search(id)
     loads.foreach (load =>{
-      TelnetClient().execute(load.on())
+      CommandExecutor().execute(load.on())
     })
       loads.mkString("<br/>")
   }
 
   get("/off/:id") {
     val id = params("id")
-    val loads = LuConfig().search(id)
+    val loads = LuConfig().state.search(id)
     loads.foreach (load =>{
-      TelnetClient().execute(load.off())
+      CommandExecutor().execute(load.off())
     })
     loads.mkString("<br/>")
   }
@@ -39,11 +39,11 @@ class LutronServlet extends LuStack with Logging {
     val levelO = params("level").tryToInt
     info(s"Setting id: $id to level: $levelO")
 
-    val loads = LuConfig().search(id)
+    val loads = LuConfig().state.search(id)
 
     loads.foreach(load => {
       levelO.foreach(level => {
-        TelnetClient().execute(load.set(level))
+        CommandExecutor().execute(load.set(level))
       })
     })
 
@@ -52,34 +52,40 @@ class LutronServlet extends LuStack with Logging {
 
   get("/reload") {
     contentType = "application/text"
-    LuConfig.reload()
+    LuConfig().reload()
   }
 
   get("/areas") {
     contentType="text/html"
-    val areas = LuConfig().areas
+    val areas = LuConfig().state.areas
     scaml("areas", "areas" -> areas)
   }
 
   get("/loads") {
     contentType="text/html"
-    val loadSet = LuConfig()
-    val byArea = LuConfig().loads.groupBy(_.areaName)
-    val fullState = LuStateTracker().fullState(TelnetClient(), 3, 1000).toMap
+    val loadSet = LuConfig().state
+    val byArea = LuConfig().state.loads.groupBy(_.areaName)
+    val fullState = LuStateTracker().fullState(CommandExecutor().execute, 3, 1000).toMap
     val fullStateById = fullState.map{ case(k, v) => (k.id.toString, v)}
 
     val fullStateJson = Json.asciiStringify(Json.toJson(fullStateById))
-    scaml("loads", "loadSet" -> LuConfig(), "byArea" -> byArea, "fullStateJson" -> fullStateJson)
+    scaml("loads", "loadSet" -> LuConfig().state(), "byArea" -> byArea, "fullStateJson" -> fullStateJson)
   }
 
   get("/state") {
     contentType = "application/json"
 
-    val fullState = LuStateTracker().fullState(TelnetClient(), 3, 1000).toMap
+    val fullState = LuStateTracker().fullState(CommandExecutor().execute, 3, 1000).toMap
     val fullStateById = fullState.map{ case(k, v) => (k.id.toString, v)}
 
     val fullStateJson = Json.asciiStringify(Json.toJson(fullStateById))
     fullStateJson
+  }
+
+  get("/down") {
+    contentType = "text/html"
+    val meta = MetaConfig.meta
+    val stateWithMeta = LuConfig()
   }
 
 }

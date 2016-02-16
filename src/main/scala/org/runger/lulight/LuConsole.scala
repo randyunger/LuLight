@@ -6,9 +6,9 @@ package org.runger.lulight
 
 object LuConsole extends App {
   println("Connecting telnet...")
-  val at = new TelnetClient(LuConfig.repeaterIpAddress, "lutron", "integration")
+  val at = new TelnetClientExecutor(LuConfig.repeaterIpAddress, "lutron", "integration")
   println("Downloading schema...")
-  val lu = LuConfig.parseXml
+  val lu = LuConfig().parseXml
   println("Ready for input...")
 
   var continue = true

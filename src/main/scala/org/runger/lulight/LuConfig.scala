@@ -3,7 +3,7 @@ package org.runger.lulight
 import java.net.URL
 import play.api.libs.json.{Json, JsValue, Writes}
 
-import scala.xml.XML
+import scala.xml.{Elem, XML}
 
 /**
  * Created by Unger on 9/30/15.
@@ -16,7 +16,7 @@ case class LoadSet(loads: Set[LightingLoad]) {
 
   def search(str: String) = {
     val res = loads.filter {
-      case LightingLoad(id, area, output) => {
+      case LightingLoad(id, area, output, _) => {
         area.toLowerCase.contains(str.toLowerCase) || output.toLowerCase.contains(str.toLowerCase) || (id.toString == str)
       }
     }
@@ -35,7 +35,7 @@ object LightingLoad {
   implicit val lightingLoadFormat = Json.format[LightingLoad]
 }
 
-case class LightingLoad(id: Int, areaName: String, outputName: String) {
+case class LightingLoad(id: Int, areaName: String, outputName: String, meta: Option[LoadMeta]) {
   def off() = {
     s"#OUTPUT,$id,1,0"
   }
@@ -50,60 +50,28 @@ case class LightingLoad(id: Int, areaName: String, outputName: String) {
   }
 }
 
-case class LoadMeta(luId: Int, name: String, floor: Int, public: Boolean, led: Boolean, interior: Boolean)
+object LuConfig extends Logging {
+  val repeaterIpAddress = "192.168.1.2"
+  lazy val defaultFetcher = XML.load(new URL(s"http://$repeaterIpAddress/DbXmlInfo.xml"))
+  lazy val prodInstance = new LuConfig(defaultFetcher)
+  val locConfig =
+    <Area Name ="Kitchen">
+      <Output Name ="Kitchen Cans" IntegrationID="1"></Output>
+    </Area>
+  val locInstance = new LuConfig(locConfig)
 
-object MetaConfig extends Logging {
-  val public = true
-  val priv = false
-  val led = true
-  val inc = false
-  val interior = true
-  val exterior = false
-
-  val meta = Set(
-    LoadMeta(0, "Nothing", -1, priv, led, interior)
-    ,LoadMeta(65, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(56, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(55, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(72, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(54, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(48, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(50, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(49, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(95, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(93, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(94, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(96, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-    ,LoadMeta(71, "Garage Stairs", -1, public, led, interior)
-
-  )
-
-
+  def apply() = if(Settings().localOnly) {
+    info("using local instance")
+    locInstance
+  } else {
+    info("using prod instance")
+    prodInstance
+  }
 }
 
-object LuConfig extends Logging {
+class LuConfig(configFetcher: => Elem) extends Logging {
 
-  val repeaterIpAddress = "192.168.1.2"
-
-  val luConfigXml = XML.load(new URL(s"http://$repeaterIpAddress/DbXmlInfo.xml"))
+  val luConfigXml = configFetcher
 
   def parseXml() = {
     val ll = for {
@@ -112,12 +80,16 @@ object LuConfig extends Logging {
       areaName <- area.attribute("Name").toSeq.flatten
       outputName <- output.attribute("Name").toSeq.flatten
       id <- output.attribute("IntegrationID").toSeq.flatten
-    } yield LightingLoad(id.text.toInt, areaName.text, outputName.text)
+    } yield {
+      val idInt = id.text.toInt
+      val meta = MetaConfig.byId(idInt)
+      LightingLoad(idInt, areaName.text, outputName.text, meta)
+    }
     ll.foreach(l => info(l.toString))
     LoadSet(ll.toSet)
   }
 
-  def apply() = parseXmlOnce
+  def state() = parseXmlOnce
 
   var parseXmlOnce = parseXml()
 
@@ -129,5 +101,5 @@ object LuConfig extends Logging {
 }
 
 object LuConfigTest extends App {
-  LuConfig.parseXml
+  LuConfig().parseXml
 }

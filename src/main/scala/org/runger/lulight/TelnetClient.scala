@@ -11,14 +11,25 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * Created by Unger on 9/30/15.
  */
 
-object TelnetClient {
+object CommandExecutor extends Logging {
 
   def init() = {}
 
-  val instance = new TelnetClient(LuConfig.repeaterIpAddress, "lutron", "integration")
+  lazy val prodInstance = new TelnetClientExecutor(LuConfig.repeaterIpAddress, "lutron", "integration")
+  val localInstance = new CommandExecutor {
+    override def execute(cmd: String): Unit = {
 
-  def apply() = {
-    instance
+    }
+  }
+
+  def apply(): CommandExecutor = {
+    if(Settings().localOnly) {
+      info("Local commands (ignoring all commands)")
+      localInstance
+    } else {
+      info("using telnet commands")
+      prodInstance
+    }
   }
 
 
@@ -71,7 +82,11 @@ class CommPackage(addr: String) extends Logging {
 
 }
 
-class TelnetClient(ip: String, user: String, pwd: String) extends Logging {
+trait CommandExecutor {
+  def execute(cmd: String): Unit
+}
+
+class TelnetClientExecutor(ip: String, user: String, pwd: String) extends CommandExecutor with Logging {
 
   var comm = new CommPackage(ip)
 
