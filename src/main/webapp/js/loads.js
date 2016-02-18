@@ -16,6 +16,26 @@ $(document).ready(function(){
 });
 
 $(document).ready(function(){
+    $("input.filtered").change(function() {
+        $(this).parent().siblings(".level").text(this.value);
+        var filters = JSON.parse($("h2").attr("data"));
+        //Add filter for the current event
+        filters.bulbType = {};
+        filters.bulbType.code = this.name;
+        var jsonString = JSON.stringify(filters);
+
+        var url = "filtered?level="+this.value;
+
+        $.ajax({
+            url: url,
+            type: 'POST',
+            data: jsonString
+        });
+    });
+});
+
+
+$(document).ready(function(){
     $("#toggleId").change(function() {
         $(".id").css("visibility", "visible")
     })

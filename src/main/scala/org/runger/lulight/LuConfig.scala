@@ -26,6 +26,15 @@ case class LoadSet(loads: Set[LightingLoad]) {
   def areas = loads.map(_.areaName)
 
   val byId = loads.map(l => l.id -> l).toMap
+
+  def filterBy(fs: FilterSet) = {
+    val filteredLoads = loads.filter(ll => {
+      fs.bulbType.map(req => ll.meta.exists(load => load.bulb == req)).getOrElse(true) &&
+      fs.floor.map(req => ll.meta.exists(load => load.floor == req)).getOrElse(true) &&
+      fs.intExt.map(req => ll.meta.exists(load => load.intExt == req)).getOrElse(true)
+    })
+    LoadSet(filteredLoads)
+  }
 }
 
 object LightingLoad {
@@ -48,6 +57,8 @@ case class LightingLoad(id: Int, areaName: String, outputName: String, meta: Opt
   def getState() = {
     s"?OUTPUT,$id,1"
   }
+  def isUp = meta.exists(_.floor == Floor.Upstairs)
+  def isDown = meta.exists(_.floor == Floor.Downstairs)
 }
 
 object LuConfig extends Logging {
@@ -55,9 +66,22 @@ object LuConfig extends Logging {
   lazy val defaultFetcher = XML.load(new URL(s"http://$repeaterIpAddress/DbXmlInfo.xml"))
   lazy val prodInstance = new LuConfig(defaultFetcher)
   val locConfig =
-    <Area Name ="Kitchen">
-      <Output Name ="Kitchen Cans" IntegrationID="1"></Output>
-    </Area>
+    <Config>
+      <Area Name ="Kitchen">
+        <Output Name ="Kitchen Island" IntegrationID="1"></Output>
+        <Output Name ="Kitchen Cans" IntegrationID="2"></Output>
+        <Output Name ="Kitchen Spots" IntegrationID="3"></Output>
+      </Area>
+      <Area Name ="Breakfast Room">
+        <Output Name ="Breakfast Cans" IntegrationID="4"></Output>
+        <Output Name ="Breakfast Sconces" IntegrationID="5"></Output>
+        <Output Name ="Breakfast Chandelier" IntegrationID="6"></Output>
+      </Area>
+      <Area Name ="Master">
+        <Output Name ="Master Cans" IntegrationID="7"></Output>
+        <Output Name ="Master Reading lights" IntegrationID="8"></Output>
+      </Area>
+    </Config>
   val locInstance = new LuConfig(locConfig)
 
   def apply() = if(Settings().localOnly) {
@@ -89,7 +113,7 @@ class LuConfig(configFetcher: => Elem) extends Logging {
     LoadSet(ll.toSet)
   }
 
-  def state() = parseXmlOnce
+  def state = parseXmlOnce
 
   var parseXmlOnce = parseXml()
 

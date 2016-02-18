@@ -69,7 +69,7 @@ class LutronServlet extends LuStack with Logging {
     val fullStateById = fullState.map{ case(k, v) => (k.id.toString, v)}
 
     val fullStateJson = Json.asciiStringify(Json.toJson(fullStateById))
-    scaml("loads", "loadSet" -> LuConfig().state(), "byArea" -> byArea, "fullStateJson" -> fullStateJson)
+    scaml("loads", "loadSet" -> LuConfig().state, "byArea" -> byArea, "fullStateJson" -> fullStateJson)
   }
 
   get("/state") {
@@ -83,9 +83,88 @@ class LutronServlet extends LuStack with Logging {
   }
 
   get("/down") {
-    contentType = "text/html"
-    val meta = MetaConfig.meta
-    val stateWithMeta = LuConfig()
+    contentType="text/html"
+//    val byBulb = LuConfig().state.loads.filter(_.isDown)//.map(_.meta)
+//      .groupBy(_.meta.map(_.bulb))
+
+//    val b = for {
+//      load <- LuConfig().state.loads
+//      if load.isDown
+//      meta <- load.meta
+////      if meta.bulb ==
+//    } yield (load, meta)
+//
+//    val byBulb = b.groupBy(_._2.bulb).map{
+//      case(k, v) => (k.toString, v.map(_._1))
+//    }
+    val filterSet = FilterSet(floor = Some(Floor.Downstairs))
+
+    val byArea = LuConfig().state.loads.filter(_.isDown).groupBy(_.areaName)
+
+    val bulbTypes = (for {
+      ll <- byArea.values.flatten
+      llM <- ll.meta
+    } yield llM.bulb).toSet
+
+    val fullState = LuStateTracker().fullState(CommandExecutor().execute, 3, 1000).toMap
+    val fullStateById = fullState.map{ case(k, v) => (k.id.toString, v)}
+
+    val fullStateJson = Json.asciiStringify(Json.toJson(fullStateById))
+    val filterSetJson = Json.asciiStringify(Json.toJson(filterSet))
+
+    scaml("loads2", "byArea" -> byArea, "bulbTypes" -> bulbTypes, "filterSetJson" -> filterSetJson,"fullStateJson" -> fullStateJson)
   }
+
+  get("/up") {
+    contentType="text/html"
+    val byArea = LuConfig().state.loads.filter(_.isUp).groupBy(_.areaName)
+
+    val fullState = LuStateTracker().fullState(CommandExecutor().execute, 3, 1000).toMap
+    val fullStateById = fullState.map{ case(k, v) => (k.id.toString, v)}
+
+    val fullStateJson = Json.asciiStringify(Json.toJson(fullStateById))
+    scaml("loads2", "byArea" -> byArea, "fullStateJson" -> fullStateJson)
+  }
+
+  post("/filtered") {
+    contentType = "application/json"
+
+    val req = request
+    val levelP = params("level")
+    val level = levelP.tryToInt.getOrElse {
+      warn("Couldn't parse level for filtered")
+      throw new IllegalArgumentException
+    }
+    val filters = request.body
+    val x = request.getParameter("")
+    val y = multiParams
+    info(y.toString)
+    val yf = y.filter{case (k,v) => k!="level"}
+    val json = yf.head._1
+    info(json)
+    info(s"multi: $filters")
+    val jv = Json.parse(json)
+    val ff = Json.fromJson[FilterSet](jv)
+    info(ff.toString)
+    val filterSet = ff.asOpt.getOrElse {
+      info("Couldn't parse filters")
+      throw new IllegalArgumentException
+    }
+    val loads = LuConfig().state.filterBy(filterSet)
+    loads.loads.foreach(load => {
+      CommandExecutor().execute(load.set(level))
+    })
+  }
+//  get("/downInc") {
+//    contentType="text/html"
+//    val byArea = LuConfig().state.loads.filter(_.isUp).groupBy(_.areaName)
+//
+//    val fullState = LuStateTracker().fullState(CommandExecutor().execute, 3, 1000).toMap
+//    val fullStateById = fullState.map{ case(k, v) => (k.id.toString, v)}
+//
+//    val fullStateJson = Json.asciiStringify(Json.toJson(fullStateById))
+//    scaml("loads2", "byArea" -> byArea, "fullStateJson" -> fullStateJson)
+//  }
+
 
 }

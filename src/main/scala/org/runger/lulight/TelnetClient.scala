@@ -18,13 +18,13 @@ object CommandExecutor extends Logging {
   lazy val prodInstance = new TelnetClientExecutor(LuConfig.repeaterIpAddress, "lutron", "integration")
   val localInstance = new CommandExecutor {
     override def execute(cmd: String): Unit = {
-
+      info(s"Ignoring Command: $cmd")
     }
   }
 
   def apply(): CommandExecutor = {
     if(Settings().localOnly) {
-      info("Local commands (ignoring all commands)")
+//      info("Local commands (ignoring all commands)")
       localInstance
     } else {
       info("using telnet commands")

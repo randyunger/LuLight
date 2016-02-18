@@ -39,8 +39,8 @@ object SharedStatus {
 object BulbType {
   case class Type(code: String)
   implicit val typeFormat = Json.format[Type]
-  val LED = Type("l")
-  val Incandescent = Type("i")
+  val LED = Type("LED")
+  val Incandescent = Type("Incandescent")
 //  trait Type
 //  object LED extends Type
 //  object Incandescent extends Type
@@ -56,7 +56,13 @@ object IntExt {
 //  object Exterior extends Type
 }
 
-case class LoadMeta(luId: Int, name: String, floor: Floor.Type, shared: SharedStatus.Type, led: BulbType.Type, interior: IntExt.Type)
+case class FilterSet(intExt: Option[IntExt.Type] = None, bulbType: Option[BulbType.Type] = None, floor: Option[Floor.Type] = None)
+
+object FilterSet {
+  implicit val filterSetJson = Json.format[FilterSet]
+}
+
+case class LoadMeta(luId: Int, name: String, floor: Floor.Type, shared: SharedStatus.Type, bulb: BulbType.Type, intExt: IntExt.Type)
 
 object LoadMeta {
   implicit val loadMetaFormat = Json.format[LoadMeta]
@@ -71,6 +77,8 @@ object MetaConfig extends Logging {
     , LoadMeta(4, "Breakfast Cans", Floor.Downstairs, SharedStatus.Public, BulbType.LED, IntExt.Interior)
     , LoadMeta(5, "Breakfast Sconces", Floor.Downstairs, SharedStatus.Public, BulbType.Incandescent, IntExt.Interior)
     , LoadMeta(6, "Breakfast Chandelier", Floor.Downstairs, SharedStatus.Public, BulbType.Incandescent, IntExt.Interior)
+    , LoadMeta(7, "Master Cans", Floor.Upstairs, SharedStatus.Private, BulbType.LED, IntExt.Interior)
+    , LoadMeta(8, "Master Reading Lights", Floor.Upstairs, SharedStatus.Private, BulbType.Incandescent, IntExt.Interior)
   )
 
   def byId(id: Int) = {
