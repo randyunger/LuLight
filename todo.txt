@@ -1,0 +1,8 @@
+Faster page load
+    Don't query state every page load. (Permacache fullstate)
+Presets
+Update sliders when state changes via switches
+
+
+-----------------------
+- Page loads with sliders in right position

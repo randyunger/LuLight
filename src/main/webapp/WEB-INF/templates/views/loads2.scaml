@@ -8,9 +8,23 @@
 - attributes("title") = "Loads - LuLight"
 
 -@ val byArea: Map[String, Set[LightingLoad]]
--@ val fullStateJson: String
+/-@ val fullStateJson: String
 -@ val bulbTypes: Set[BulbType.Type]
 -@ val filterSetJson: String
+
+.main2
+    .scene(name="Watch TV")
+        %span.scene
+            Watch TV
+    .scene
+        %span.scene
+            Button 2
+    .scene
+        %span.scene
+            Button 3
+    .scene
+        %span.scene
+            Button 4
 
 %h2(data={filterSetJson})
     By Bulb Type
@@ -22,7 +36,7 @@
         %span.id
             #{bulbType.code}
         %span.level
-            0
+            ???
         %span.slider
             %input.filtered(type="range" name={bulbType.code} id={"range"+bulbType.code} value=0)
 
@@ -32,23 +46,24 @@
         %h2= {areaName}
         - for(loads <- byArea.get(areaName))
             - for(load <- loads)
+                - val lev = load.state.map(_.level).getOrElse(0)
                 .load
                     %span.name
                         #{load.outputName}
                     %span.id
                         #{load.id}
                     %span.level
-                        0
+                        #{lev}
                     %span.slider
-                        %input.range(type="range" name={load.id} id={"range"+load.id})
+                        %input.range(type="range" name={load.id} id={"range"+load.id} value={lev})
 
 %label
     %input#toggleId(type="checkbox")
     Show Ids
 
-%div= fullStateJson
+/%div= fullStateJson
 
-%script(type="application/json" id="fullStateScript") =fullStateJson
+/%script(type="application/json" id="fullStateScript") =fullStateJson
 
 /:javascript
 /    #{fullStateJson}

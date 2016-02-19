@@ -2,6 +2,8 @@ package org.runger.lulight
 
 import play.api.libs.json.Json
 
+import scala.collection.mutable
+
 /**
   *
   * Created by Unger on 2/15/16.
@@ -69,17 +71,23 @@ object LoadMeta {
 }
 
 object MetaConfig extends Logging {
-  val meta = Set(
-    LoadMeta(65, "Garage Stairs", Floor.Garage, SharedStatus.Public, BulbType.Incandescent, IntExt.Interior)
-    , LoadMeta(1, "Kitchen Island", Floor.Downstairs, SharedStatus.Public, BulbType.Incandescent, IntExt.Interior)
-    , LoadMeta(2, "Kitchen Cans", Floor.Downstairs, SharedStatus.Public, BulbType.LED, IntExt.Interior)
-    , LoadMeta(3, "Kitchen Spots", Floor.Downstairs, SharedStatus.Public, BulbType.LED, IntExt.Interior)
-    , LoadMeta(4, "Breakfast Cans", Floor.Downstairs, SharedStatus.Public, BulbType.LED, IntExt.Interior)
-    , LoadMeta(5, "Breakfast Sconces", Floor.Downstairs, SharedStatus.Public, BulbType.Incandescent, IntExt.Interior)
-    , LoadMeta(6, "Breakfast Chandelier", Floor.Downstairs, SharedStatus.Public, BulbType.Incandescent, IntExt.Interior)
-    , LoadMeta(7, "Master Cans", Floor.Upstairs, SharedStatus.Private, BulbType.LED, IntExt.Interior)
-    , LoadMeta(8, "Master Reading Lights", Floor.Upstairs, SharedStatus.Private, BulbType.Incandescent, IntExt.Interior)
-  )
+  val meta = mutable.Buffer.empty[LoadMeta]
+
+  def addMeta(loadMeta: LoadMeta) = {
+    meta += loadMeta
+    loadMeta
+  }
+
+  val GarageStairs = addMeta(LoadMeta(65, "Garage Stairs", Floor.Garage, SharedStatus.Public, BulbType.Incandescent, IntExt.Interior))
+  val KitchenIsland =  addMeta(LoadMeta(1, "Kitchen Island", Floor.Downstairs, SharedStatus.Public, BulbType.Incandescent, IntExt.Interior))
+  val KitchenCans = addMeta(LoadMeta(2, "Kitchen Cans", Floor.Downstairs, SharedStatus.Public, BulbType.LED, IntExt.Interior))
+  val KitchenSpots = addMeta(LoadMeta(3, "Kitchen Spots", Floor.Downstairs, SharedStatus.Public, BulbType.LED, IntExt.Interior))
+  val BreakfastCans = addMeta(LoadMeta(4, "Breakfast Cans", Floor.Downstairs, SharedStatus.Public, BulbType.LED, IntExt.Interior))
+  val BreakfastSconces = addMeta(LoadMeta(5, "Breakfast Sconces", Floor.Downstairs, SharedStatus.Public, BulbType.Incandescent, IntExt.Interior))
+  val BreakfastChandi = addMeta(LoadMeta(6, "Breakfast Chandelier", Floor.Downstairs, SharedStatus.Public, BulbType.Incandescent, IntExt.Interior))
+  val MasterCans = addMeta(LoadMeta(7, "Master Cans", Floor.Upstairs, SharedStatus.Private, BulbType.LED, IntExt.Interior))
+  val MasterReading = addMeta(LoadMeta(8, "Master Reading Lights", Floor.Upstairs, SharedStatus.Private, BulbType.Incandescent, IntExt.Interior))
+
 
   def byId(id: Int) = {
     meta.find(_.luId == id)

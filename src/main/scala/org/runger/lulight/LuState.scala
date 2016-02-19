@@ -5,16 +5,17 @@ package org.runger.lulight
  */
 
 import Utils._
+import org.joda.time.DateTime
 import play.api.libs.json.Json
 
 object LoadState {
   implicit val loadStateFormat = Json.format[LoadState]
 }
 
-case class LoadState(id: Int, level: Float)
+case class LoadState(id: Int, level: Float, timestamp: DateTime)
 
 case class StateSignal(prefix: Char, typ: String, id: Int, action: Int, value: Float) {
-  def toLoadState = LoadState(id, value)
+  def toLoadState = LoadState(id, value, DateTime.now())
 }
 
 object StateSignal {
@@ -40,11 +41,20 @@ object LuStateTracker extends Logging {
     prodState
   }
 
-  val prodState = new LuStateTracker(LuConfig().state)
+  val prodState = new LuStateTracker(LuConfig().storedConfig)
 }
 
 class LuStateTracker(config: LoadSet) extends Logging {
   val state = new ConcMap[LightingLoad, LoadState]()
+
+  def withState(load: LightingLoad): LightingLoad = {
+    val stO = Some(LoadState(load.id, (math.random*100).toFloat, DateTime.now()))
+//    val st0 = state.get(load)
+
+    //Keep old state if state not found in map
+    val newState = stO orElse load.state
+    load.copy(state = newState)
+  }
 
   def update(line: String) = {
     val sig = StateSignal(line)
@@ -71,6 +81,7 @@ class LuStateTracker(config: LoadSet) extends Logging {
     config.loads diff state.keySet
   }
 
+  //todo: cache this
   def fullState(executor: String => Unit, tries: Int, delay: Int): ConcMap[LightingLoad, LoadState]  = {
     val unknown = unknownLoads()
     if (unknown.size > 0) {

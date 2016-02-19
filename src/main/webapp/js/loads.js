@@ -59,3 +59,17 @@ function setRangesFromState(state) {
         $(slider).parent().siblings(".level").text(level);
     })
 }
+
+$(document).ready(function(){
+    $("div.scene").click(function() {
+        //$(this).parent().siblings(".level").text(this.value);
+
+        var url= "scene/" + this.attributes["name"].textContent; //+ "/" + this.value;
+
+        $.ajax({
+            url: url,
+            type: 'POST'
+        });
+    });
+});
+

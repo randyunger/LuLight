@@ -1,6 +1,7 @@
 package org.runger.lulight
 
 import java.net.URL
+import org.joda.time.DateTime
 import play.api.libs.json.{Json, JsValue, Writes}
 
 import scala.xml.{Elem, XML}
@@ -9,14 +10,18 @@ import scala.xml.{Elem, XML}
  * Created by Unger on 9/30/15.
  */
 
+object LoadSet {
+  val empty = LoadSet(Set.empty)
+}
+
 case class LoadSet(loads: Set[LightingLoad]) {
-  def cans = {
-    loads.filter(_.outputName.toLowerCase.contains("cans"))
-  }
+//  def cans = {
+//    loads.filter(_.outputName.toLowerCase.contains("cans"))
+//  }
 
   def search(str: String) = {
     val res = loads.filter {
-      case LightingLoad(id, area, output, _) => {
+      case LightingLoad(id, area, output, _, _) => {
         area.toLowerCase.contains(str.toLowerCase) || output.toLowerCase.contains(str.toLowerCase) || (id.toString == str)
       }
     }
@@ -35,6 +40,8 @@ case class LoadSet(loads: Set[LightingLoad]) {
     })
     LoadSet(filteredLoads)
   }
+
+  def withState = LoadSet(loads.map(LuStateTracker().withState))
 }
 
 object LightingLoad {
@@ -44,7 +51,7 @@ object LightingLoad {
   implicit val lightingLoadFormat = Json.format[LightingLoad]
 }
 
-case class LightingLoad(id: Int, areaName: String, outputName: String, meta: Option[LoadMeta]) {
+case class LightingLoad(id: Int, areaName: String, outputName: String, meta: Option[LoadMeta] = None, state:Option[LoadState] = None) {
   def off() = {
     s"#OUTPUT,$id,1,0"
   }
@@ -59,6 +66,13 @@ case class LightingLoad(id: Int, areaName: String, outputName: String, meta: Opt
   }
   def isUp = meta.exists(_.floor == Floor.Upstairs)
   def isDown = meta.exists(_.floor == Floor.Downstairs)
+  def withSetLevel(level: Int) = {
+    val newState = state match {
+      case None => LoadState(id, level, DateTime.now)
+      case Some(st) => st.copy(level = level, timestamp = DateTime.now)
+    }
+    this.copy(state = Some(newState))
+  }
 }
 
 object LuConfig extends Logging {
@@ -113,7 +127,7 @@ class LuConfig(configFetcher: => Elem) extends Logging {
     LoadSet(ll.toSet)
   }
 
-  def state = parseXmlOnce
+  def storedConfig = parseXmlOnce
 
   var parseXmlOnce = parseXml()
 
