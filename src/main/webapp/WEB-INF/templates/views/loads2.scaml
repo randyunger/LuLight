@@ -4,27 +4,21 @@
 - import org.runger.lulight.ConcMap
 - import org.runger.lulight.BulbType
 - import org.runger.lulight.FilterSet
+- import org.runger.lulight.SceneSet
 
 - attributes("title") = "Loads - LuLight"
 
 -@ val byArea: Map[String, Set[LightingLoad]]
-/-@ val fullStateJson: String
+-@ val sceneSet: SceneSet
 -@ val bulbTypes: Set[BulbType.Type]
 -@ val filterSetJson: String
 
-.main2
-    .scene(name="Watch TV")
-        %span.scene
-            Watch TV
-    .scene
-        %span.scene
-            Button 2
-    .scene
-        %span.scene
-            Button 3
-    .scene
-        %span.scene
-            Button 4
+.scenes
+    -for(scene <- sceneSet.scenes)
+        .scene(name = {scene.label})
+            %span.scene
+                #{scene.label}
+
 
 %h2(data={filterSetJson})
     By Bulb Type

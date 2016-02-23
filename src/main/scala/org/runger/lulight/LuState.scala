@@ -66,6 +66,8 @@ class LuStateTracker(config: LoadSet) extends Logging {
         loadO match {
           case Some(load) => {
             state += (load -> st)
+//            Mqtt().publish(s"/ha/lights/10228/${load.id}", st.level.toString)
+            Mqtt().publish(load.id, st)
             info(s"Updated state: ${load} is ${st}")
           }
           case None => warn(s"Load not found in config for line $line")

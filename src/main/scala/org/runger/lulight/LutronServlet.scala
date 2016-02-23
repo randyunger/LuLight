@@ -89,9 +89,12 @@ class LutronServlet extends LuStack with Logging {
 
   get("/down") {
     contentType="text/html"
-    val filterSet = FilterSet(floor = Some(Floor.Downstairs))
+    val filterSet: FilterSet = FilterSet(floors = Set(Floor.Downstairs))
 
-    val loadSetWState = LuConfig().storedConfig.filterBy(filterSet).withState
+    val sceneSet = SceneSet()
+
+//    val loadSetWState = LuConfig().storedConfig.filterBy(filterSet).withState
+    val loadSetWState = filterSet.filter(LuConfig().storedConfig)
     val byArea = loadSetWState.loads.groupBy(_.areaName)
 //    val byArea = LuConfig().storedConfig.loads.filter(_.isDown).groupBy(_.areaName)
 
@@ -106,12 +109,14 @@ class LutronServlet extends LuStack with Logging {
 
     val filterSetJson = Json.asciiStringify(Json.toJson(filterSet))
 
-    scaml("loads2", "byArea" -> byArea, "bulbTypes" -> bulbTypes, "filterSetJson" -> filterSetJson)
+    scaml("loads2", "sceneSet" -> sceneSet, "byArea" -> byArea, "bulbTypes" -> bulbTypes, "filterSetJson" -> filterSetJson)
   }
 
   get("/up") {
     contentType="text/html"
-    val filterSet = FilterSet(floor = Some(Floor.Downstairs))
+    val filterSet = FilterSet(floors = Set(Floor.Upstairs))
+
+    val sceneSet = SceneSet()
 
     val byArea = LuConfig().storedConfig.loads.filter(_.isUp).groupBy(_.areaName)
 
@@ -126,7 +131,7 @@ class LutronServlet extends LuStack with Logging {
     val fullStateJson = Json.asciiStringify(Json.toJson(fullStateById))
     val filterSetJson = Json.asciiStringify(Json.toJson(filterSet))
 
-    scaml("loads2", "byArea" -> byArea, "bulbTypes" -> bulbTypes, "filterSetJson" -> filterSetJson,"fullStateJson" -> fullStateJson)
+    scaml("loads2", "byArea" -> byArea, "sceneSet" -> sceneSet, "bulbTypes" -> bulbTypes, "filterSetJson" -> filterSetJson,"fullStateJson" -> fullStateJson)
   }
 
   post("/filtered") {
@@ -153,7 +158,8 @@ class LutronServlet extends LuStack with Logging {
       info("Couldn't parse filters")
       throw new IllegalArgumentException
     }
-    val loads = LuConfig().storedConfig.filterBy(filterSet)
+//    val loads = LuConfig().storedConfig.filterBy(filterSet)
+    val loads = filterSet.filter(LuConfig().storedConfig)
     loads.loads.foreach(load => {
       CommandExecutor().execute(load.set(level))
     })
@@ -174,15 +180,18 @@ class LutronServlet extends LuStack with Logging {
     val sn = params("sceneName")
     info(s"triggering scene for $sn")
 
-    val sc = SceneSet().get(sn).getOrElse {
+    val scene = SceneSet().get(sn).getOrElse {
       warn(s"Could not find scene: $sn")
       throw new IllegalArgumentException
     }
 
-    info(s"executing scene ${sc.label}")
-    sc.execute(CommandExecutor())
+    info(s"executing scene ${scene.label}")
+    val loadStates = scene.execute(CommandExecutor().execute)
 
-    Ok
+    val jv = Json.toJson(loadStates)
+    val json = Json.asciiStringify(jv)
+
+    json
   }
 
 }

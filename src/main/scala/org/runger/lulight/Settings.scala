@@ -13,4 +13,5 @@ object Settings {
 
 class Settings {
   val localOnly = true
+  val fakeTelnet = true
 }

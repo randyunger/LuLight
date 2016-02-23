@@ -19,6 +19,10 @@ object CommandExecutor extends Logging {
   val localInstance = new CommandExecutor {
     override def execute(cmd: String): Unit = {
       info(s"Ignoring Command: $cmd")
+      if(Settings().fakeTelnet) { //Send a fake telnet line
+        val line = cmd//"#OUTPUT,5,1,30"
+        LuStateTracker().update(line)
+      }
     }
   }
 

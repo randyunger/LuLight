@@ -43,6 +43,10 @@ trait Logging {
     logger.warn(msg)
   }
 
+  def warn(msg: String, t: Throwable) = {
+    logger.warn(msg, t)
+  }
+
   def error(msg: String) = {
     logger.error(msg)
   }

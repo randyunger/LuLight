@@ -58,7 +58,44 @@ object IntExt {
 //  object Exterior extends Type
 }
 
-case class FilterSet(intExt: Option[IntExt.Type] = None, bulbType: Option[BulbType.Type] = None, floor: Option[Floor.Type] = None)
+case class FilterSet(
+                      intExts: Set[IntExt.Type] = Set.empty
+                      , bulbTypes: Set[BulbType.Type] = Set.empty
+                      , floors: Set[Floor.Type] = Set.empty
+                      , ids: Set[Int] = Set.empty
+                    ) {
+  def filter(loadSet: LoadSet) = {
+    val loads = loadSet.loads.filter(ll => {
+      val matchesABulbType = filterB(ll)
+      val matchesAnIntExt = filterI(ll)
+      val matchesAFloor = filterF(ll)
+      val matchesAnId = filterId(ll)
+      val passesFilter = matchesABulbType && matchesAnIntExt && matchesAFloor && matchesAnId
+      passesFilter
+    })
+    LoadSet(loads)
+  }
+
+  def filterB(load: LightingLoad) = {
+    bulbTypes.isEmpty || load.meta.exists(m => bulbTypes.contains(m.bulb))
+  }
+
+  def filterI(load: LightingLoad) = {
+    intExts.isEmpty || load.meta.exists(m => intExts.contains(m.intExt))
+  }
+
+  def filterF(load: LightingLoad) = {
+    floors.isEmpty || load.meta.exists(m => floors.contains(m.floor))
+  }
+
+  def filterId(load: LightingLoad) = {
+    ids.isEmpty || ids.contains(load.id)
+  }
+
+//  def filterX(load: LightingLoad) = {
+//    load.meta.exists(m => bulbTypes.contains(m.bulb))
+//  }
+}
 
 object FilterSet {
   implicit val filterSetJson = Json.format[FilterSet]

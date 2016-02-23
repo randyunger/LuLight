@@ -32,14 +32,14 @@ case class LoadSet(loads: Set[LightingLoad]) {
 
   val byId = loads.map(l => l.id -> l).toMap
 
-  def filterBy(fs: FilterSet) = {
-    val filteredLoads = loads.filter(ll => {
-      fs.bulbType.map(req => ll.meta.exists(load => load.bulb == req)).getOrElse(true) &&
-      fs.floor.map(req => ll.meta.exists(load => load.floor == req)).getOrElse(true) &&
-      fs.intExt.map(req => ll.meta.exists(load => load.intExt == req)).getOrElse(true)
-    })
-    LoadSet(filteredLoads)
-  }
+//  def filterBy(fs: FilterSet) = {
+//    val filteredLoads = loads.filter(ll => {
+//      fs.bulbTypes.map(allowed => ll.meta.exists(load => load.bulb == allowed)).getOrElse(true) &&
+//      fs.floors.map(req => ll.meta.exists(load => load.floor == req)).getOrElse(true) &&
+//      fs.intExts.map(req => ll.meta.exists(load => load.intExt == req)).getOrElse(true)
+//    })
+//    LoadSet(filteredLoads)
+//  }
 
   def withState = LoadSet(loads.map(LuStateTracker().withState))
 }

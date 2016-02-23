@@ -1,5 +1,7 @@
 package org.runger.lulight
 
+import org.joda.time.DateTime
+
 /**
   *
   * Created by Unger on 2/18/16.
@@ -15,8 +17,18 @@ object SceneSet {
     ,KitchenIsland -> 25
   ))
 
+  val allOff = Scene("All Off", Set(
+    KitchenCans -> 0
+    ,KitchenIsland -> 0
+    ,KitchenSpots -> 0
+    ,MasterCans -> 0
+    ,MasterReading -> 0
+    ,BreakfastCans -> 0
+  ))
+
   val prodInstance: SceneSet = SceneSet(Set(
     watchTv
+    ,allOff
   ))
   def apply() = prodInstance
 }
@@ -26,15 +38,17 @@ case class SceneSet(scenes: Set[Scene]) {
 }
 
 case class Scene(label: String, loads:LoadSet) extends Logging {
-  def execute(excutor: CommandExecutor) = {
-    loads.loads.foreach(load => {
-      val state = load.state.map(_.level).getOrElse {
+  def execute(excutor: String => Unit) = {
+    val loadStates = loads.loads.map(load => {
+      val level = load.state.map(_.level).getOrElse {
         warn("No state for scene load")
         0f
       }
-      val cmd = load.set(state.toInt)
-      excutor.execute(cmd)
+      val cmd = load.set(level.toInt)
+      excutor(cmd)
+      LoadState(load.id, level, DateTime.now)
     })
+    loadStates
   }
 }
 

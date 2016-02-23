@@ -2,7 +2,9 @@ Faster page load
     Don't query state every page load. (Permacache fullstate)
 Presets
 Update sliders when state changes via switches
-
-
+One slider for all lights in filter?
+configurable filters- checkbox to control which filters assoc w slider
+Push notification to web page
+    MQTT
 -----------------------
 - Page loads with sliders in right position
