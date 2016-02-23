@@ -20,8 +20,9 @@ $(document).ready(function(){
         $(this).parent().siblings(".level").text(this.value);
         var filters = JSON.parse($("h2").attr("data"));
         //Add filter for the current event
-        filters.bulbType = {};
-        filters.bulbType.code = this.name;
+        filters.bulbTypes = [];
+        filters.bulbTypes[0] = {};
+        filters.bulbTypes[0].code = this.name;
         var jsonString = JSON.stringify(filters);
 
         var url = "filtered?level="+this.value;

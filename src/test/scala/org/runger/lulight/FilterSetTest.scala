@@ -20,6 +20,19 @@ class FilterSetTest extends Specification {
       assert(res.loads.size > 0)
       ok
     }
-
   }
+
+  "FilterSetTest with Two Filters" should {
+    "filter with two filters" in {
+      val fs = FilterSet(floors = Set(Floor.Downstairs), bulbTypes = Set(BulbType.LED))
+      val startingLoads = LuConfig().storedConfig
+      val res = fs.filter(startingLoads)
+      println("With two filters: ")
+      res.loads.foreach(println)
+      assert(res.loads.size < startingLoads.loads.size)
+      assert(res.loads.size > 0)
+      ok
+    }
+  }
+
 }
