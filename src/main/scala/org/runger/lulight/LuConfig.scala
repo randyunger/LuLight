@@ -1,5 +1,6 @@
 package org.runger.lulight
 
+import java.io.FileInputStream
 import java.net.URL
 import org.joda.time.DateTime
 import play.api.libs.json.{Json, JsValue, Writes}
@@ -79,7 +80,7 @@ object LuConfig extends Logging {
   val repeaterIpAddress = "192.168.1.2"
   lazy val defaultFetcher = XML.load(new URL(s"http://$repeaterIpAddress/DbXmlInfo.xml"))
   lazy val prodInstance = new LuConfig(defaultFetcher)
-  val locConfig =
+  val testConfig =
     <Config>
       <Area Name ="Kitchen">
         <Output Name ="Kitchen Island" IntegrationID="1"></Output>
@@ -96,11 +97,15 @@ object LuConfig extends Logging {
         <Output Name ="Master Reading lights" IntegrationID="8"></Output>
       </Area>
     </Config>
-  val locInstance = new LuConfig(locConfig)
+  val locInstance = new LuConfig(testConfig)
+
+  lazy val snapshotFile = this.getClass.getResource("config.snapshot.xml")
+  lazy val snapshotInstance = new LuConfig(XML.load(snapshotFile))
 
   def apply() = if(Settings().localOnly) {
     info("using local instance")
     locInstance
+//    snapshotInstance
   } else {
     info("using prod instance")
     prodInstance
@@ -120,10 +125,10 @@ class LuConfig(configFetcher: => Elem) extends Logging {
       id <- output.attribute("IntegrationID").toSeq.flatten
     } yield {
       val idInt = id.text.toInt
-      val meta = MetaConfig.byId(idInt)
+      val meta = MetaConfig().byId(idInt)
       LightingLoad(idInt, areaName.text, outputName.text, meta)
     }
-    ll.foreach(l => info(l.toString))
+    ll.sortBy(_.id).foreach(l => info(l.toString))
     LoadSet(ll.toSet)
   }
 

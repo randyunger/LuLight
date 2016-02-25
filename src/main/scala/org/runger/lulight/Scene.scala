@@ -9,20 +9,25 @@ import org.joda.time.DateTime
   **/
 
 object SceneSet {
-  import MetaConfig._
+  val meta = MetaConfig()
+  import meta._
 
+  //todo: These are no longer identical between local and prod
   val watchTv = Scene("Watch TV", Set(
      KitchenCans -> 0
     ,KitchenSpots-> 0
-    ,KitchenIsland -> 25
+    ,KitchenIslandPendants -> 25
   ))
 
   val allOff = Scene("All Off", Set(
     KitchenCans -> 0
-    ,KitchenIsland -> 0
+    ,KitchenIslandPendants -> 0
     ,KitchenSpots -> 0
-    ,MasterCans -> 0
-    ,MasterReading -> 0
+    ,BreakfastCans -> 0
+    ,BreakfastChandi -> 0
+    ,BreakfastSconces -> 0
+    ,MasterCansFront -> 0
+    ,MasterRandy -> 0
     ,BreakfastCans -> 0
   ))
 

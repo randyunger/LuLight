@@ -89,7 +89,7 @@ class LutronServlet extends LuStack with Logging {
 
   get("/down") {
     contentType="text/html"
-    val filterSet: FilterSet = FilterSet(floors = Set(Floor.Downstairs))
+    val filterSet: FilterSet = FilterSet(floors = Set(Floor.Downstairs), intExts = Set(IntExt.Interior), shareTypes = Set(SharedStatus.Public), bulbTypes= Set(BulbType.Incandescent))
 
     val sceneSet = SceneSet()
 
@@ -114,7 +114,7 @@ class LutronServlet extends LuStack with Logging {
 
   get("/up") {
     contentType="text/html"
-    val filterSet = FilterSet(floors = Set(Floor.Upstairs))
+    val filterSet = FilterSet(floors = Set(Floor.Upstairs), intExts = Set(IntExt.Interior))
 
     val sceneSet = SceneSet()
 
