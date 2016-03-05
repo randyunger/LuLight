@@ -3,6 +3,9 @@ Faster page load
 
 One slider for all lights in filter?
 configurable filters- checkbox to control which filters assoc w slider
+Mqtt disconnects server side
+Timing issues - slow action from lutron?
+LED under cabinets - not dimmable.
 
 -----------------------
 Done!

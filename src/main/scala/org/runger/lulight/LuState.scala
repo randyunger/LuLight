@@ -45,7 +45,16 @@ object LuStateTracker extends Logging {
 }
 
 class LuStateTracker(config: LoadSet) extends Logging {
+  val mqtt = MqttService()
   val state = new ConcMap[LightingLoad, LoadState]()
+
+  def loadSet = {
+    val loadSet = state.toSet
+    val loadSetWState = loadSet.map{
+      case (load, lState) => load.copy(state = Some(lState))
+    }
+    LoadSet(loadSetWState)
+  }
 
   def withState(load: LightingLoad): LightingLoad = {
     val stO = Some(LoadState(load.id, (math.random*100).toFloat, DateTime.now()))
@@ -66,8 +75,8 @@ class LuStateTracker(config: LoadSet) extends Logging {
         loadO match {
           case Some(load) => {
             state += (load -> st)
-//            Mqtt().publish(s"/ha/lights/10228/${load.id}", st.level.toString)
             Mqtt().publish(load.id, st)
+//            mqtt.publish(load.id, st)
             info(s"Updated state: ${load} is ${st}")
           }
           case None => warn(s"Load not found in config for line $line")

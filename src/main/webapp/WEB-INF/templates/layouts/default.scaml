@@ -1,5 +1,7 @@
+-@ val context: _root_.org.scalatra.scalate.ScalatraRenderContext
 -@ val title: String
 -@ val body: String
+- import org.runger.lulight.Utils._
 
 !!! 5
 %html{:lang => "en"}
@@ -37,12 +39,11 @@
           %a.navbar-brand{:href => "#"} LuLight
         .collapse.navbar-collapse
           %ul.nav.navbar-nav
-            %li.active
-              %a{:href => "/loads"} Home
-            %li
-              %a{:href  => "/down"} Downstairs
-            %li
-              %a{:href  => "/up"} Upstairs
+            - val sections = List("All" -> "all", "Downstairs" -> "down", "Upstairs" -> "up")
+            - for((label, url) <- sections)
+              - val active = if(fileFromUri(context.requestUri) == url) "active" else ""
+              %li{:class => active}
+                %a{:href => url} =label
     .container
       .main
         != body

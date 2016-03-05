@@ -1,5 +1,7 @@
 package org.runger.lulight
 
+import javax.servlet.{ServletContextEvent, ServletContextListener}
+
 import org.scalatra._
 import scalate.ScalateSupport
 import org.fusesource.scalate.{ TemplateEngine, Binding }
@@ -19,4 +21,15 @@ trait LuStack extends ScalatraServlet with ScalateSupport {
     } orElse serveStaticResource() getOrElse resourceNotFound()
   }
 
+}
+
+class Listener extends ServletContextListener with Logging {
+  override def contextDestroyed(sce: ServletContextEvent): Unit = {}
+
+  override def contextInitialized(sce: ServletContextEvent): Unit = {
+    //Load initial state
+    info("Getting initial state")
+    val fullState = LuStateTracker().fullState(CommandExecutor().execute, 3, 1000).toMap
+    fullState
+  }
 }

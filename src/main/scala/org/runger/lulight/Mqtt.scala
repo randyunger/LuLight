@@ -25,8 +25,6 @@ class Mqtt(host: String, clientId: String) extends Logging {
   val connOps = new MqttConnectOptions()
   connOps.setCleanSession(false)
 
-  client.connect(connOps)
-
   def publish(loadId: Int, loadState: LoadState): Unit = {
 //    Mqtt().publish(s"/ha/lights/10228/${load.id}", st.level.toString)
     val topic = s"/ha/lights/10228/$loadId"
@@ -37,6 +35,7 @@ class Mqtt(host: String, clientId: String) extends Logging {
 
   def publish(topic: String, msg: String): Unit = {
     try {
+      if(!client.isConnected) client.connect()
       val bytes = msg.getBytes
       val mqMsg = new MqttMessage(bytes)
       mqMsg.setQos(2)

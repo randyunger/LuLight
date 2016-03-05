@@ -27,6 +27,14 @@ object Utils {
 
   }
 
+  def fileFromUri(uri: String) = {
+    val lastSlash = uri.lastIndexOf("/")+1
+//    val toTake = uri.length - lastSlash
+//    val max = math.max(lastSlash, 0)
+    val file = uri.substring(lastSlash)
+    file
+  }
+
 }
 
 

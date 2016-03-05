@@ -53,11 +53,13 @@ object LuLightBuild extends Build {
         ,"org.eclipse.jetty" % "jetty-webapp" % jettyVersion
         ,"org.eclipse.jetty" % "jetty-server" % jettyVersion
         ,"org.eclipse.jetty" % "jetty-servlet" % jettyVersion
+        , "org.scalatest" % "scalatest_2.11" % "2.2.6" % "test"
+        ,"io.reactivex" %% "rxscala" % "0.26.0"
         ,"ch.qos.logback" % "logback-classic" % "1.1.2"
         ,"javax.servlet" % "javax.servlet-api" % "3.1.0" % "provided"
         ,"commons-net" % "commons-net" % "2.0"
-        ,"com.typesafe.akka" % "akka-actor_2.11" % "2.3.11"
-        ,"com.typesafe.akka" % "akka-testkit_2.11" % "2.3.11" % "test"
+        ,"com.typesafe.akka" % "akka-actor_2.11" % "2.4.2"
+        ,"com.typesafe.akka" % "akka-testkit_2.11" % "2.4.2" % "test"
         ,"org.scala-lang.modules" %% "scala-xml" % "1.0.3"
         ,"com.typesafe.play" % "play-json_2.11" % "2.5.0-M1"
         ,"org.eclipse.paho" % "org.eclipse.paho.client.mqttv3" % "1.0.2"

@@ -108,6 +108,7 @@ case class FilterSet(
 }
 
 object FilterSet {
+  val empty = FilterSet()
   implicit val filterSetJson = Json.format[FilterSet]
 }
 

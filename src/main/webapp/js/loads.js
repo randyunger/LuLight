@@ -137,6 +137,7 @@ $(document).ready(function(){
         if (responseObject.errorCode !== 0) {
             console.log("onConnectionLost:"+responseObject.errorMessage);
         }
+        window.location.reload();
     }
 
 // called when a message arrives

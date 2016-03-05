@@ -36,6 +36,20 @@ trait Web extends LocalServer with Logging {
 
       Console.readLine("Say 'cache' and hit enter to ditch permacacher and ehcache. Say 'exit' and hit enter to exit.\nWebServer> ") match {
 
+        case str:String if str.startsWith("sc") => {
+          val name = str.drop(3)
+          val sc = SceneSet().get(name)
+          sc match {
+            case Some(s) => {
+              s.execute(CommandExecutor().execute)
+              println(s"Executed: $s")
+            }
+            case None => {
+              println(s"Couldn't find scene $name")
+            }
+          }
+        }
+
         case "exit" | "end" | "quit" | ":q" =>
           println("Exiting...")
           continue = false
