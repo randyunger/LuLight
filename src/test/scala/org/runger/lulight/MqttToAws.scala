@@ -8,9 +8,9 @@ import org.specs2.mutable.Specification
 
 class MqttToAws extends Specification with Logging {
 
-  "Mqtt" should {
+  "Mqtt to Aws" should {
     "pub" in {
-      val client = new Mqtt("tcp://52.6.125.250:80", "devClient1")
+      val client = new Mqtt(Settings().moquetteHostAws, "devClient1")
       client.publish("something", "A message!")
       ok
     }

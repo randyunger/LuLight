@@ -4,6 +4,7 @@ import org.scalatra.sbt._
 import org.scalatra.sbt.PluginKeys._
 import com.mojolly.scalate.ScalatePlugin._
 import ScalateKeys._
+import com.gilt.aws.lambda.{AwsLambdaPlugin, _}
 //import sbtassembly.AssemblyKeys._
 //import sbtassembly.AssemblyPlugin.autoImport._
 
@@ -20,22 +21,38 @@ object LuLightBuild extends Build {
     scalaVersion := ScalaVersion
   )
 
+  import AwsLambdaPlugin.autoImport._
+  lazy val lambdaSettings = Seq(
+
+    AwsLambdaPlugin.autoImport.lambdaHandlers := Seq(
+    "LuLight"                 -> "org.runger.lulight.LambdaHandler::handleRequest"
+//    "function2"                 -> "com.gilt.example.Lambda::handleRequest2",
+//    "function3"                 -> "com.gilt.example.OtherLambda::handleRequest3"
+    )
+
+    // or, instead of the above, for just one function/handler
+    //
+    // lambdaName := Some("function1")
+    //
+    // handlerName := Some("com.gilt.example.Lambda::handleRequest1")
+
+    , s3Bucket := Some("lulight-lambda-jars")
+
+    , awsLambdaMemory := Some(192)
+
+    , awsLambdaTimeout := Some(30)
+
+    , roleArn := Some("arn:aws:iam::089420071793:role/lambda_basic_execution")
+  )
+
   resolvers += Resolver.jcenterRepo
   resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases"
   //  enablePlugins(TomcatPlugin)
 
-  lazy val app = (project in file("app")).
-    settings(commonSettings: _*).
-    settings(
-//      assemblyJarName in assembly := "LuLight.jar",
-//      test in assembly := {},
-//      mainClass in assembly := Some("org.runger.")
-    )
-
   lazy val project = Project (
     "LuLight",
     file("."),
-    settings = ScalatraPlugin.scalatraSettings ++ scalateSettings ++ commonSettings ++ Seq(
+    settings = lambdaSettings ++ ScalatraPlugin.scalatraSettings ++ scalateSettings ++ commonSettings ++ Seq(
       //      organization := Organization,
       name := Name,
       //      version := Version,
@@ -63,6 +80,9 @@ object LuLightBuild extends Build {
         ,"org.scala-lang.modules" %% "scala-xml" % "1.0.3"
         ,"com.typesafe.play" % "play-json_2.11" % "2.5.0-M1"
         ,"org.eclipse.paho" % "org.eclipse.paho.client.mqttv3" % "1.0.2"
+        ,"com.amazonaws" % "aws-lambda-java-core" % "1.1.0"
+        ,"com.amazonaws" % "aws-lambda-java-log4j" % "1.0.0"
+
       ),
       scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
         Seq(
@@ -77,5 +97,5 @@ object LuLightBuild extends Build {
         )
       }
     )
-  )
+  ).enablePlugins(AwsLambdaPlugin)
 }

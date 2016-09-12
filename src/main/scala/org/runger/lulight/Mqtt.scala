@@ -19,6 +19,18 @@ object Mqtt {
   def apply() = prodInstance
 }
 
+object MqttAws extends Logging {
+  val host = Settings().moquetteHostAws //"tcp://52.6.125.250:80"
+  val clientId = "LuLightToAws"  //Would have to make this unique for multiple servers.
+  val prodInstance = new Mqtt(host, clientId + this.hashCode.toString)
+  def apply() = prodInstance
+
+  def handleAwsEvent(str: String): Unit = {
+    info(str)
+  }
+
+}
+
 class Mqtt(host: String, clientId: String) extends Logging {
   val client = new MqttClient(host, clientId)
 
@@ -48,6 +60,7 @@ class Mqtt(host: String, clientId: String) extends Logging {
   }
 
   def subscribe(topic: String, f: String => Unit) = {
+    if(!client.isConnected) client.connect()
     val cb = new MqttCallback {
       override def deliveryComplete(token: IMqttDeliveryToken): Unit = {}
 
