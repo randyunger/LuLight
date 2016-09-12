@@ -91,7 +91,7 @@ $(document).ready(function(){
     // Create a client instance
     //var client = new Paho.MQTT.Client(location.hostname, Number(location.port), "clientId");
     console.log("Booting Paho")
-    var client = new Paho.MQTT.Client("localhost", 8888, "jsClient-123");
+    var client = new Paho.MQTT.Client("black-pearl", 8888, "jsClient-123");
 
 // set callback handlers
     client.onConnectionLost = onConnectionLost;

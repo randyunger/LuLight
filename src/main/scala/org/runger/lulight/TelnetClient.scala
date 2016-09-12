@@ -166,17 +166,15 @@ class TelnetClientExecutor(ip: String, user: String, pwd: String) extends Comman
           line = comm.i.readLine()
           info(s"rcv line: $line")
           lineBuff.append(line)
-          LuStateTracker().update(line)
-          //        val str = chBuff.toString()
-          //        if(chBuff.length > 2000) {
-          //          val tmp = chBuff.takeRight(1000)
-          //          chBuff.clear()
-          //          chBuff.append(tmp)
-          //        }
-          //        info(s"rcv: $chBuff")
+          val response = LuStateTracker().update(line)
+          if(response == "doLogin") {
+            warn("Warning: Socket was disconnected! detected login prompt.")
+            comm.close()
+            comm = new CommPackage(ip)
+          }
         } catch {
           case e: Exception => {
-            warn("Warning: Socket was disconnected!")
+            warn("Warning: Socket was disconnected!, exception.")
             warn(e.getStackTrace.mkString("\n"))
             e.printStackTrace()
             comm.close()

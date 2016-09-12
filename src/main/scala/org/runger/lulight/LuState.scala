@@ -78,12 +78,20 @@ class LuStateTracker(config: LoadSet) extends Logging {
             Mqtt().publish(load.id, st)
 //            mqtt.publish(load.id, st)
             info(s"Updated state: ${load} is ${st}")
+            "updated"
           }
-          case None => warn(s"Load not found in config for line $line")
+          case None => {
+            warn(s"Load not found in config for line $line")
+            "unknown"
+          }
         }
       }
-      case  None => {
-        warn(s"Not able to interpret Telnet line: $line")
+      case None => {
+        warn(s"No state found in Telnet line: $line")
+        if(line.contains("login:")){
+          "doLogin"
+        }
+        else "unknown"
       }
     }
   }

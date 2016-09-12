@@ -26,7 +26,7 @@ class MqttTest extends Specification with Logging {
         info(s"msg received: $msg")
       }))
       Mqtt().publish(topic, "A message!")
-      Thread.sleep(1000)
+      Thread.sleep(10*1000)
       cb should(be_>=(1))
     }
   }

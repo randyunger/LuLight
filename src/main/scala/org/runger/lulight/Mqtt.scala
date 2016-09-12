@@ -13,7 +13,7 @@ import play.api.libs.json.Json
 //https://github.com/eclipse/paho.mqtt.java/blob/master/org.eclipse.paho.sample.mqttv3app/src/main/java/org/eclipse/paho/sample/mqttv3app/Sample.java
 
 object Mqtt {
-  val host = "tcp://localhost:1883"
+  val host = Settings().moquetteHost //"tcp://192.168.99.100:1883"
   val clientId = "LuLight"  //Would have to make this unique for multiple servers.
   val prodInstance = new Mqtt(Mqtt.host, Mqtt.clientId + this.hashCode.toString)
   def apply() = prodInstance
