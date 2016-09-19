@@ -82,7 +82,7 @@ object LuLightBuild extends Build {
         ,"org.eclipse.paho" % "org.eclipse.paho.client.mqttv3" % "1.0.2"
         ,"com.amazonaws" % "aws-lambda-java-core" % "1.1.0"
         ,"com.amazonaws" % "aws-lambda-java-log4j" % "1.0.0"
-
+//        ,"com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.8.2"
       ),
       scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
         Seq(

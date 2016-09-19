@@ -68,10 +68,25 @@ class Mqtt(host: String, clientId: String) extends Logging {
         info("Executing Mqtt callback")
         val payload = new String(message.getPayload)
         val res = f(payload)
-        info(s"payload: $payload")
+        info(s"topic: $topic payload: $payload")
       }
 
-      override def connectionLost(cause: Throwable): Unit = {}
+      override def connectionLost(cause: Throwable): Unit = {
+        warn("LuLight lost connection to MQTT broker.")
+
+        //reconnect logic here
+        if(!client.isConnected) {
+          info("retrying mqtt connection")
+          Thread.sleep(10*1000)
+          try {
+            client.connect()
+            //todo: does this not resubscribe? If we want to resubscribe, set clean session = false
+          } catch {
+            case t: Throwable => connectionLost(t)
+          }
+          info("MQTT reconnected")
+        }
+      }
     }
 
     client.setCallback(cb)
