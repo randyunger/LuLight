@@ -4,9 +4,14 @@ import javax.servlet.{ServletContextEvent, ServletContextListener}
 
 import org.scalatra._
 import scalate.ScalateSupport
-import org.fusesource.scalate.{ TemplateEngine, Binding }
+import org.fusesource.scalate.{Binding, TemplateEngine}
 import org.fusesource.scalate.layout.DefaultLayoutStrategy
 import javax.servlet.http.HttpServletRequest
+
+import ch.qos.logback.classic.LoggerContext
+import org.slf4j.LoggerFactory
+import org.slf4j.helpers.SubstituteLoggerFactory
+
 import collection.mutable
 
 trait LuStack extends ScalatraServlet with ScalateSupport {
@@ -27,6 +32,12 @@ class Listener extends ServletContextListener with Logging {
   override def contextDestroyed(sce: ServletContextEvent): Unit = {}
 
   override def contextInitialized(sce: ServletContextEvent): Unit = {
+
+//    val lf = LoggerFactory.getILoggerFactory
+////    val nn = lf.asInstanceOf[SubstituteLoggerFactory]
+//    val lc = lf.asInstanceOf[LoggerContext]
+////    val n = nn.getLoggerNames
+//    val ll = lc.getLoggerList
 
     //Load initial state
     info("Getting initial state")

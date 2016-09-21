@@ -10,6 +10,8 @@ import com.amazonaws.services.lambda.runtime.{Context, RequestStreamHandler}
 import org.runger.lulight.lambda.model._
 import play.api.libs.json.{JsDefined, JsString, JsUndefined, Json}
 import HomeSkillFormats._
+import ch.qos.logback.classic.LoggerContext
+import org.slf4j.LoggerFactory
 
 class LambdaHandler extends RequestStreamHandler{
 
@@ -19,6 +21,9 @@ class LambdaHandler extends RequestStreamHandler{
 
 
   override def handleRequest(input: InputStream, output: OutputStream, context: Context): Unit = {
+//    val lc = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
+//    lc.stop()
+
     val logger = context.getLogger
 
     val p = Json.parse(input)
