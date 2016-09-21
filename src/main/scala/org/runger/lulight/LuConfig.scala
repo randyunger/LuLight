@@ -76,7 +76,9 @@ case class LightingLoad(id: Int, areaName: String, outputName: String, meta: Opt
   }
 }
 
-object LuConfig extends Logging {
+object LuConfig {
+  val logger = new LoggingImpl {}
+
   val repeaterIpAddress = "192.168.1.2"
   lazy val defaultFetcher = XML.load(new URL(s"http://$repeaterIpAddress/DbXmlInfo.xml"))
   lazy val prodInstance = new LuConfig(defaultFetcher)
@@ -103,16 +105,18 @@ object LuConfig extends Logging {
   lazy val snapshotInstance = new LuConfig(XML.load(snapshotFile))
 
   def apply() = if(Settings().localOnly) {
-    info("using local instance")
+    logger.info("using local instance")
     locInstance
 //    snapshotInstance
   } else {
-    info("using prod instance")
+    logger.info("using prod instance")
     prodInstance
   }
 }
 
-class LuConfig(configFetcher: => Elem) extends Logging {
+class LuConfig(configFetcher: => Elem) {
+
+  val logger = new LoggingImpl {}
 
   val luConfigXml = configFetcher
 
@@ -128,7 +132,7 @@ class LuConfig(configFetcher: => Elem) extends Logging {
       val meta = MetaConfig().byId(idInt)
       LightingLoad(idInt, areaName.text, outputName.text, meta)
     }
-    ll.sortBy(_.id).foreach(l => info(l.toString))
+    ll.sortBy(_.id).foreach(l => logger.info(l.toString))
     LoadSet(ll.toSet)
   }
 

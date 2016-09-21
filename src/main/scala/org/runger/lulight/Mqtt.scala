@@ -1,6 +1,7 @@
 package org.runger.lulight
 
 import org.eclipse.paho.client.mqttv3._
+import org.runger.lulight.lambda.LambdaHandler
 import play.api.libs.json.Json
 
 /**
@@ -15,23 +16,26 @@ import play.api.libs.json.Json
 object Mqtt {
   val host = Settings().moquetteHost //"tcp://192.168.99.100:1883"
   val clientId = "LuLight"  //Would have to make this unique for multiple servers.
-  val prodInstance = new Mqtt(Mqtt.host, Mqtt.clientId + this.hashCode.toString)
+  val prodInstance = new Mqtt(Mqtt.host, Mqtt.clientId + this.hashCode.toString, new LoggingImpl {})
   def apply() = prodInstance
 }
 
-object MqttAws extends Logging {
+object MqttAws {
+//  val logger = new LamdbaLoggerWrapper() {}
+
   val host = Settings().moquetteHostAws //"tcp://52.6.125.250:80"
   val clientId = "LuLightToAws"  //Would have to make this unique for multiple servers.
-  val prodInstance = new Mqtt(host, clientId + this.hashCode.toString)
+  val prodInstance = new Mqtt(host, clientId + this.hashCode.toString, logger)
   def apply() = prodInstance
 
-  def handleAwsEvent(str: String): Unit = {
-    info(str)
+  def handleAwsEventLocally(topic: String, str: String): Unit = {
+    logger.info(s"Received mqtt from AWS topic $topic: $str")
   }
 
 }
 
-class Mqtt(host: String, clientId: String) extends Logging {
+//Todo: Logger needs to be injected
+class Mqtt(host: String, clientId: String, logger: Logging) {
   val client = new MqttClient(host, clientId)
 
   val connOps = new MqttConnectOptions()
@@ -54,7 +58,7 @@ class Mqtt(host: String, clientId: String) extends Logging {
       client.publish(topic, mqMsg)
     } catch {
       case ex: Exception => {
-        warn(s"mqtt exception", ex)
+        logger.warn(s"mqtt exception: " + ex.getMessage)
       }
     }
   }
@@ -65,18 +69,18 @@ class Mqtt(host: String, clientId: String) extends Logging {
       override def deliveryComplete(token: IMqttDeliveryToken): Unit = {}
 
       override def messageArrived(topic: String, message: MqttMessage): Unit = {
-        info("Executing Mqtt callback")
+        logger.info("Executing Mqtt callback")
         val payload = new String(message.getPayload)
         val res = f(payload)
-        info(s"topic: $topic payload: $payload")
+        logger.info(s"topic: $topic payload: $payload")
       }
 
       override def connectionLost(cause: Throwable): Unit = {
-        warn("LuLight lost connection to MQTT broker.")
+        logger.warn("LuLight lost connection to MQTT broker.")
 
         //reconnect logic here
         if(!client.isConnected) {
-          info("retrying mqtt connection")
+          logger.info("retrying mqtt connection")
           Thread.sleep(10*1000)
           try {
             client.connect()
@@ -84,7 +88,7 @@ class Mqtt(host: String, clientId: String) extends Logging {
           } catch {
             case t: Throwable => connectionLost(t)
           }
-          info("MQTT reconnected")
+          logger.info("MQTT reconnected")
         }
       }
     }

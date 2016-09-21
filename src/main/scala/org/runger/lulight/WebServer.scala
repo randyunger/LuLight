@@ -13,18 +13,18 @@ object LocalWeb extends Web with App {
 
 object WebServerRunner extends Web with App {
   new Thread {
-    info("Starting telnet")
+    logger.info("Starting telnet")
     val tc = CommandExecutor()
   }.start()
 
   new Thread {
-    info("Reading config")
+    logger.info("Reading config")
     val lu = LuConfig()
   }.start()
 
 }
 
-trait Web extends LocalServer with Logging {
+trait Web extends LocalServer {
 
   private var continue = true
 
@@ -61,7 +61,9 @@ trait Web extends LocalServer with Logging {
   }
 }
 
-trait LocalServer extends Logging {
+trait LocalServer  {
+  val logger = new LoggingImpl {}
+
   val webappcontext = new WebAppContext()
   var server: Option[Server] = None
   val defaultHttpPort = 8080
@@ -75,14 +77,14 @@ trait LocalServer extends Logging {
       startServer(portNumber, sslPortNumber)
     }
     catch {
-      case t: Throwable => info(t.getMessage)
+      case t: Throwable => logger.info(t.getMessage)
     }
     try {
       work(webappcontext)
     }
     catch {
       case t: Throwable if keepAlive => {
-        info("Test failed. Keeping server alive anyway.")
+        logger.info("Test failed. Keeping server alive anyway.")
         thrownEx = Some(t)
       }
     }
@@ -121,7 +123,7 @@ trait LocalServer extends Logging {
   }
 
   def stopServer() {
-    info("Stopping web server")
+    logger.info("Stopping web server")
     server.map(_.stop())
   }
 }

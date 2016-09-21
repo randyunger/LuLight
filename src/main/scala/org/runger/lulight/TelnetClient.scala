@@ -11,14 +11,16 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * Created by Unger on 9/30/15.
  */
 
-object CommandExecutor extends Logging {
+object CommandExecutor {
+
+  val logger = new LoggingImpl {}
 
   def init() = {}
 
   lazy val prodInstance = new TelnetClientExecutor(LuConfig.repeaterIpAddress, "lutron", "integration")
   val localInstance = new CommandExecutor {
     override def execute(cmd: String): Unit = {
-      info(s"Ignoring Command: $cmd")
+      logger.info(s"Ignoring Command: $cmd")
       if(Settings().fakeTelnet) { //Send a fake telnet line
         val line = cmd//"#OUTPUT,5,1,30"
         LuStateTracker().update(line)
@@ -31,7 +33,7 @@ object CommandExecutor extends Logging {
 //      info("Local commands (ignoring all commands)")
       localInstance
     } else {
-      info("using telnet commands")
+      logger.info("using telnet commands")
       prodInstance
     }
   }
@@ -60,13 +62,15 @@ object TelnetDebug extends App {
   o.println(pwd + '\r')
 }
 
-class CommPackage(addr: String) extends Logging {
+class CommPackage(addr: String) {
+
+  val logger = new LoggingImpl {}
 
   val telnetPort = 23
-  info(s"Connecting to $addr port $telnetPort")
+  logger.info(s"Connecting to $addr port $telnetPort")
 
   val sock = new Socket(addr, telnetPort)
-  info(s"Connected to $addr port $telnetPort")
+  logger.info(s"Connected to $addr port $telnetPort")
   val socketIsIntact = true
   val i = new LuBuff(new InputStreamReader(sock.getInputStream, "US-ASCII"))
   val o = new PrintWriter(sock.getOutputStream, true)
@@ -90,30 +94,32 @@ trait CommandExecutor {
   def execute(cmd: String): Unit
 }
 
-class TelnetClientExecutor(ip: String, user: String, pwd: String) extends CommandExecutor with Logging {
+class TelnetClientExecutor(ip: String, user: String, pwd: String) extends CommandExecutor {
+
+  val logger = new LoggingImpl {}
 
   var comm = new CommPackage(ip)
 
   class LutronActor extends Actor {
     def receive = {
       case "login" => {
-        info("Login prompt received")
+        logger.info("Login prompt received")
         comm.send(user)
       }
       case "pwd" => {
-        info("Pwd prompt received")
+        logger.info("Pwd prompt received")
         comm.send(pwd)
       }
       case cmd: String => {
         if(!hasLoggedIn){
-          warn("Trying to send cmd before log-in")
+          logger.warn("Trying to send cmd before log-in")
           system.scheduler.scheduleOnce(1000 milliseconds, lutronActor, cmd)
         } else {
-          info(s"Sending telnet cmd: $cmd")
+          logger.info(s"Sending telnet cmd: $cmd")
           comm.send(cmd)
         }
       }
-      case _ => warn("Unknown cmd to Actor")
+      case _ => logger.warn("Unknown cmd to Actor")
     }
   }
 
@@ -137,7 +143,7 @@ class TelnetClientExecutor(ip: String, user: String, pwd: String) extends Comman
         ch = comm.i.read().toChar
         chBuff.append(ch)
       }
-      info(s"rcv: $chBuff")
+      logger.info(s"rcv: $chBuff")
       lutronActor ! "login"
 
       //Read password prompt
@@ -146,36 +152,36 @@ class TelnetClientExecutor(ip: String, user: String, pwd: String) extends Comman
         ch = comm.i.read().toChar
         chBuff.append(ch)
       }
-      info(s"rcv: $chBuff")
+      logger.info(s"rcv: $chBuff")
       lutronActor ! "pwd"
 
       //Send subsequent output to Actor
 //      ch = i.read().toChar
       //      chBuff.append(ch)
       var line = comm.i.readLine()
-      info(line)
+      logger.info(line)
       lineBuff.append(line)
       while (true) {
         try {
           //Check for post-login string
           //        if(!hasLoggedIn && chBuff.indexOf("GNET") > -1) {
           if (!hasLoggedIn && line.contains("GNET")) {
-            info("We've received log in confirmation!")
+            logger.info("We've received log in confirmation!")
             hasLoggedIn = true
           }
           line = comm.i.readLine()
-          info(s"rcv line: $line")
+          logger.info(s"rcv line: $line")
           lineBuff.append(line)
           val response = LuStateTracker().update(line)
           if(response == "doLogin") {
-            warn("Warning: Socket was disconnected! detected login prompt.")
+            logger.warn("Warning: Socket was disconnected! detected login prompt.")
             comm.close()
             comm = new CommPackage(ip)
           }
         } catch {
           case e: Exception => {
-            warn("Warning: Socket was disconnected!, exception.")
-            warn(e.getStackTrace.mkString("\n"))
+            logger.warn("Warning: Socket was disconnected!, exception.")
+            logger.warn(e.getStackTrace.mkString("\n"))
             e.printStackTrace()
             comm.close()
             comm = new CommPackage(ip)

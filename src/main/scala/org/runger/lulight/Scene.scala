@@ -42,11 +42,13 @@ case class SceneSet(scenes: Set[Scene]) {
   def get(label: String) = scenes.find(_.label == label)
 }
 
-case class Scene(label: String, loads:LoadSet) extends Logging {
+case class Scene(label: String, loads:LoadSet) {
+  val logger = new LoggingImpl {}
+
   def execute(excutor: String => Unit) = {
     val loadStates = loads.loads.map(load => {
       val level = load.state.map(_.level).getOrElse {
-        warn("No state for scene load")
+        logger.warn("No state for scene load")
         0f
       }
       val cmd = load.set(level.toInt)
@@ -57,13 +59,15 @@ case class Scene(label: String, loads:LoadSet) extends Logging {
   }
 }
 
-object Scene extends Logging {
+object Scene {
+  val logger = new LoggingImpl {}
+
   def apply(label: String, meta: Set[(LoadMeta, Int)]): Scene = {
     val confMap = LuConfig().storedConfig.byId
 
     val loads = meta.map{case (loadMeta, level) => {
       val load = confMap.getOrElse(loadMeta.luId, {
-        warn(s"No lu config for meta $loadMeta")
+        logger.warn(s"No lu config for meta $loadMeta")
         throw new IllegalArgumentException
       })
       load.withSetLevel(level)

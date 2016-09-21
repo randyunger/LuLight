@@ -1,5 +1,6 @@
 package org.runger.lulight
 
+import com.amazonaws.services.lambda.runtime.LambdaLogger
 import org.slf4j.LoggerFactory
 
 /**
@@ -37,26 +38,51 @@ object Utils {
 
 }
 
-
-
 trait Logging {
+  def info(msg: String)
+  def warn(msg: String)
+}
+
+class LamdbaLoggerWrapper(ll: LambdaLogger) extends Logging {
+  def info(msg: String) = try {
+    ll.log(msg)
+  } catch {
+    case ex: Exception => println("Logging exception in info")
+  }
+
+  def warn(msg: String) = try {
+    ll.log(msg)
+  } catch {
+    case ex: Exception => println("Logging exception in warn")
+  }
+}
+
+trait LoggingImpl extends Logging {
 
   val logger = LoggerFactory.getLogger(this.getClass)
 
-  def info(msg: String) = {
+  def info(msg: String) = try {
     logger.info(msg)
+  } catch {
+    case ex: Exception => println("Logging exception in LoggingImpl info")
   }
 
-  def warn(msg: String) = {
+  def warn(msg: String) = try {
     logger.warn(msg)
+  } catch {
+    case ex: Exception => println("Logging exception in LoggingImpl warn")
   }
 
-  def warn(msg: String, t: Throwable) = {
+  def warn(msg: String, t: Throwable) = try {
     logger.warn(msg, t)
+  } catch {
+    case ex: Exception => println("Logging exception in LoggingImpl t")
   }
 
-  def error(msg: String) = {
+  def error(msg: String) = try {
     logger.error(msg)
+  } catch {
+    case ex: Exception => println("Logging exception in LoggingImpl error")
   }
 
 }

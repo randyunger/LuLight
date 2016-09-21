@@ -138,7 +138,10 @@ trait MetaConfigBase {
   }
 }
 
-class MetaConfig extends MetaConfigBase with Logging {
+class MetaConfig extends MetaConfigBase {
+
+  val logger = new LoggingImpl {}
+
   val FamilyRoomFront = addMeta(LoadMeta(23, "Family Room Front", Floor.Downstairs, SharedStatus.Public, BulbType.LED, IntExt.Interior))
   val BackYardLV = addMeta(LoadMeta(24, "Backyard Low Voltage", Floor.Downstairs, SharedStatus.Public, BulbType.Incandescent, IntExt.Exterior))
   val ReedCans = addMeta(LoadMeta(25, "Reed's Bedroom Cans", Floor.Upstairs, SharedStatus.Private, BulbType.LED, IntExt.Interior))
@@ -200,7 +203,9 @@ class MetaConfig extends MetaConfigBase with Logging {
 
 }
 
-class LocalMetaConfig extends MetaConfigBase with Logging {
+class LocalMetaConfig extends MetaConfigBase {
+  val logger = new LoggingImpl {}
+
   val GarageStairs = addMeta(LoadMeta(65, "Garage Stairs", Floor.Garage, SharedStatus.Public, BulbType.Incandescent, IntExt.Interior))
   val KitchenIsland =  addMeta(LoadMeta(1, "Kitchen Island", Floor.Downstairs, SharedStatus.Public, BulbType.Incandescent, IntExt.Interior))
   val KitchenCans = addMeta(LoadMeta(2, "Kitchen Cans", Floor.Downstairs, SharedStatus.Public, BulbType.LED, IntExt.Interior))

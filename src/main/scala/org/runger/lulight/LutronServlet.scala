@@ -5,7 +5,9 @@ import play.api.libs.json.Json
 import scalate.ScalateSupport
 import Utils._
 
-class LutronServlet extends LuStack with Logging {
+class LutronServlet extends LuStack {
+
+  val logger = new LoggingImpl {}
 
   get("/") {
     <html>
@@ -37,7 +39,7 @@ class LutronServlet extends LuStack with Logging {
   post("/set/:id/:level") {
     val id = params("id")
     val levelO = params("level").tryToInt
-    info(s"Setting id: $id to level: $levelO")
+    logger.info(s"Setting id: $id to level: $levelO")
 
     val loads = LuConfig().storedConfig.search(id)
 
@@ -75,12 +77,12 @@ class LutronServlet extends LuStack with Logging {
 
   get("/state") {
     contentType = "application/json"
-    info("returning full state from API")
+    logger.info("returning full state from API")
     val fullState = LuStateTracker().fullState(CommandExecutor().execute, 3, 1000).toMap
     val fullStateById = fullState.map{ case(k, v) => (k.id.toString, v)}
 
     if(fullStateById.isEmpty) {
-      warn("Not able to return status!")
+      logger.warn("Not able to return status!")
       status(500)
     } else {
       val fullStateJson = Json.asciiStringify(Json.toJson(fullStateById))
@@ -193,7 +195,7 @@ class LutronServlet extends LuStack with Logging {
 //    val req = request
     val levelP = params("level")
     val level = levelP.tryToInt.getOrElse {
-      warn("Couldn't parse level for filtered")
+      logger.warn("Couldn't parse level for filtered")
       throw new IllegalArgumentException
     }
 //    val filters = request.body
@@ -202,13 +204,13 @@ class LutronServlet extends LuStack with Logging {
 //    info(y.toString)
     val yf = multiParams.filter{case (k,v) => k!="level"}
     val json = yf.head._1
-    info(json)
+    logger.info(json)
 //    info(s"multi: $filters")
     val jv = Json.parse(json)
     val ff = Json.fromJson[FilterSet](jv)
-    info(ff.toString)
+    logger.info(ff.toString)
     val filterSet = ff.asOpt.getOrElse {
-      info("Couldn't parse filters")
+      logger.info("Couldn't parse filters")
       throw new IllegalArgumentException
     }
 //    val loads = LuConfig().storedConfig.filterBy(filterSet)
@@ -231,14 +233,14 @@ class LutronServlet extends LuStack with Logging {
   post("/scene/:sceneName") {
     contentType = "application/json"
     val sn = params("sceneName")
-    info(s"triggering scene for $sn")
+    logger.info(s"triggering scene for $sn")
 
     val scene = SceneSet().get(sn).getOrElse {
-      warn(s"Could not find scene: $sn")
+      logger.warn(s"Could not find scene: $sn")
       throw new IllegalArgumentException
     }
 
-    info(s"executing scene ${scene.label}")
+    logger.info(s"executing scene ${scene.label}")
     val loadStates = scene.execute(CommandExecutor().execute)
 
     val jv = Json.toJson(loadStates)

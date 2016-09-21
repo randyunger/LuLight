@@ -36,7 +36,7 @@ object StateSignal {
   }
 }
 
-object LuStateTracker extends Logging {
+object LuStateTracker {
   def apply() = {
     prodState
   }
@@ -44,7 +44,9 @@ object LuStateTracker extends Logging {
   val prodState = new LuStateTracker(LuConfig().storedConfig)
 }
 
-class LuStateTracker(config: LoadSet) extends Logging {
+class LuStateTracker(config: LoadSet) {
+  val logger = new LoggingImpl {}
+
   val mqtt = MqttService()
   val state = new ConcMap[LightingLoad, LoadState]()
 
@@ -77,17 +79,17 @@ class LuStateTracker(config: LoadSet) extends Logging {
             state += (load -> st)
             Mqtt().publish(load.id, st)
 //            mqtt.publish(load.id, st)
-            info(s"Updated state: ${load} is ${st}")
+            logger.info(s"Updated state: ${load} is ${st}")
             "updated"
           }
           case None => {
-            warn(s"Load not found in config for line $line")
+            logger.warn(s"Load not found in config for line $line")
             "unknown"
           }
         }
       }
       case None => {
-        warn(s"No state found in Telnet line: $line")
+        logger.warn(s"No state found in Telnet line: $line")
         if(line.contains("login:")){
           "doLogin"
         }
@@ -114,12 +116,12 @@ class LuStateTracker(config: LoadSet) extends Logging {
         fullState(executor, tries-1, delay)
       }
       else {
-        info(s"Not able to get state within $tries tries")
+        logger.info(s"Not able to get state within $tries tries")
         state
       }
     }
     else {
-      info("returning full state")
+      logger.info("returning full state")
       state
     }
   }

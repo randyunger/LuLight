@@ -122,7 +122,7 @@ class MqttSupervisor extends Actor {
 
 class MqttClientActor extends Actor {
 
-  val cl = new Mqtt(Mqtt.host, Mqtt.clientId) //Should we add something unique to the actor?
+  val cl = new Mqtt(Mqtt.host, Mqtt.clientId, new LoggingImpl {}) //Should we add something unique to the actor?
 
   def receive = {
     case LevelChange(id, loadState) => {
