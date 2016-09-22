@@ -8,7 +8,7 @@ import java.io.{InputStream, OutputStream}
 
 import com.amazonaws.services.lambda.runtime.{Context, RequestStreamHandler}
 import org.runger.lulight.lambda.model._
-import play.api.libs.json.{JsDefined, JsString, JsUndefined, Json}
+import play.api.libs.json._
 import HomeSkillFormats._
 import ch.qos.logback.classic.LoggerContext
 import org.runger.lulight.MqttAws._
@@ -16,9 +16,10 @@ import org.runger.lulight.{Mqtt, MqttAws}
 import org.slf4j.LoggerFactory
 
 object LambdaHandler {
+  val charset = "UTF-8"
   val topicListDevicesRequests = s"/ha/lights/10228/ListDevicesRequests"
   val topicListDevicesResponses = s"/ha/lights/10228/ListDevicesResponses"
-  val topicDeviceAction = s"/ha/lights/10228/DeviceActionRequests"
+  val topicDeviceActions = s"/ha/lights/10228/DeviceActionRequests"
   var isLambda = false
 
   val defaultActions = List("setPercentage", "incrementPercentage", "decrementPercentage", "turnOff", "turnOn")
@@ -54,39 +55,63 @@ class LambdaHandler extends RequestStreamHandler{
 
     val logger = context.getLogger
 
-    val p = Json.parse(input)
-    val ostr = Json.asciiStringify(p)
+    val cmdJv = Json.parse(input)
 
-    logger.log(s"Input received: $ostr")
+    val loggableStr = Json.asciiStringify(cmdJv)
+    logger.log(s"Input received: $loggableStr")
 
 
-    val nameRes = p \ "header" \ "name"
+    val nameRes = cmdJv \ "header" \ "name"
     logger.log(s"name: $nameRes")
 
 //    val daReq = p.asOpt[DiscoverAppliancesRequest]
-    val header = (p \ "header").as[DAReqHeader]
+    val header = (cmdJv \ "header").as[ReqHeader]
 
     val out = nameRes match {
       case JsDefined(JsString("DiscoverAppliancesRequest")) if isFakeContext(context) => discoverAppliancesFake(header) //todo: Remove
       case JsDefined(JsString("DiscoverAppliancesRequest")) => discoverAppliances(header, context)
-      case JsDefined(JsString("otherTypeGoesHere")) => {"no response 2"} //todo
+      case JsDefined(JsString("TurnOnRequest")) => {"no response 2"} //todo
+      case JsDefined(JsString("TurnOffRequest")) => turnOff(cmdJv, context)
       case JsUndefined() => {"error 1"} //todo
+      case _ => {
+        logger.log(s"Could not match request $nameRes")
+        s"Sorry, I don't know how to handle that request, ${nameRes}"
+      }
     }
 
     logger.log(s"output will be: $out")
-    output.write(out.getBytes("UTF-8"))
+    output.write(out.getBytes(LambdaHandler.charset))
     output.flush()
   }
 
   val lightActions = List("setPercentage", "incrementPercentage", "decrementPercentage", "turnOff", "turnOn")
   val fakeDetails = AdditionalApplianceDetails(None, None, None, None)
 
-  def reqHeaderToRespHeader(dAReqHeader: DAReqHeader): DARespHeader = {
+  def reqHeaderToRespHeader(dAReqHeader: ReqHeader): ResponseHeader = {
     val msgId = "lumsg" + dAReqHeader.messageId.hashCode
-    DARespHeader(msgId, "DiscoverAppliancesResponse", dAReqHeader.namespace, dAReqHeader.payloadVersion)
+    ResponseHeader(msgId, "DiscoverAppliancesResponse", dAReqHeader.namespace, dAReqHeader.payloadVersion)
   }
 
-  def discoverAppliances(dAReqHeader: DAReqHeader, context: Context): String = {
+  def turnOff(cmdJv: JsValue, context: Context): String = {
+    val logger = context.getLogger
+    logger.log("received turn off command")
+
+    val mqttAws = new Mqtt(MqttAws.host, "LambdaClient" + this.hashCode.toString)
+    var response = Option.empty[String]
+
+//    val reqJv = Json.toJson(reqHeader)
+    val reqJs = Json.stringify(cmdJv)
+
+    mqttAws.publish(LambdaHandler.topicDeviceActions, reqJs)
+
+    val hdr = ResponseHeader(System.currentTimeMillis().toString, "TurnOffConfirmation", "Alexa.ConnectedHome.Control", "2")
+    val hdrJv = Json.toJson(hdr)
+
+    val respJv = JsObject(Map("header" -> hdrJv, "payload" -> emptyObject))
+    Json.stringify(respJv)
+  }
+
+  def discoverAppliances(dAReqHeader: ReqHeader, context: Context): String = {
 
     val mqttAws = new Mqtt(MqttAws.host, "LambdaClient" + this.hashCode.toString)
     var response = Option.empty[String]
@@ -125,7 +150,7 @@ class LambdaHandler extends RequestStreamHandler{
     }
   }
 
-  def assembleAppliancesIntoResponse(appliancesJs: String, dAReqHeader: DAReqHeader, context: Context): Option[DiscoverAppliancesResponse] = {
+  def assembleAppliancesIntoResponse(appliancesJs: String, dAReqHeader: ReqHeader, context: Context): Option[DiscoverAppliancesResponse] = {
     val logger = context.getLogger
 
     val appJv = Json.parse(appliancesJs)
@@ -147,7 +172,7 @@ class LambdaHandler extends RequestStreamHandler{
 
   }
 
-  def discoverAppliancesFake(dAReqHeader: DAReqHeader): String = {
+  def discoverAppliancesFake(dAReqHeader: ReqHeader): String = {
     val daResp = DiscoverAppliancesResponse(reqHeaderToRespHeader(dAReqHeader),
       DARespPayload(List(
         Appliance(

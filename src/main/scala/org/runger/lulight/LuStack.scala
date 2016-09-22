@@ -47,7 +47,7 @@ class LuServletContextListener extends ServletContextListener with Logging {
     //Subscribe to device list requests and Action Requests
     val subscriptions = List(
       LambdaHandler.topicListDevicesRequests
-      ,LambdaHandler.topicDeviceAction
+      ,LambdaHandler.topicDeviceActions
     )
 
     mqttAws.subscribeMulti(subscriptions, (topic, msg) => {
@@ -60,7 +60,7 @@ class LuServletContextListener extends ServletContextListener with Logging {
           val loads = LuConfig().storedConfig.search("60")  //office cans
 
           val skillDevices = loads.map(ll => {
-            LambdaHandler.buildHomeSkillDevice(ll.id.toString, ll.outputName, s"${ll.areaName} - ${ll.outputName}")
+            LambdaHandler.buildHomeSkillDevice(ll.id.toString, s"${ll.areaName} ${ll.outputName}", s"The ${ll.outputName} located in the ${ll.areaName}")
           }).toList
 
           val devicesMsgJV = Json.toJson(skillDevices)
@@ -70,7 +70,7 @@ class LuServletContextListener extends ServletContextListener with Logging {
           mqttAws.publish(LambdaHandler.topicListDevicesResponses, devicesMsg)
         }
 
-        case LambdaHandler.topicDeviceAction => {
+        case LambdaHandler.`topicDeviceActions` => {
           info(s"Aws Mqtt received. Topic: topicDeviceAction Message: $msg")
         }
       }

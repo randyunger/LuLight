@@ -3,9 +3,9 @@ package org.runger.lulight.lambda
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, OutputStream}
 
 import com.amazonaws.services.lambda.runtime.{ClientContext, CognitoIdentity, Context, LambdaLogger}
-import org.runger.lulight.lambda.model.DiscoverAppliancesResponse
+import org.runger.lulight.lambda.model.{DiscoverAppliancesResponse, HomeSkillFormats}
 import org.specs2.mutable.Specification
-import play.api.libs.json.Json
+import play.api.libs.json.{JsString, JsValue, Json}
 
 /**
   * Created by randy on 9/12/16.
@@ -112,6 +112,55 @@ class LambdaHandlerTest extends Specification {
       val actualPayload = actualJ \ "payload"
 
       actualPayload shouldEqual(expectedPayload)
+    }
+
+    "handle TurnOff requests" in {
+
+      val action = """{
+                     |    "header": {
+                     |        "namespace": "Alexa.ConnectedHome.Control",
+                     |        "name": "TurnOffRequest",
+                     |        "payloadVersion": "2",
+                     |        "messageId": "7fa86d2c-acc9-4c7b-8d43-8aa96bb2ac43"
+                     |    },
+                     |    "payload": {
+                     |        "accessToken": "AnythingCanBeAToken",
+                     |        "appliance": {
+                     |            "applianceId": "60",
+                     |            "additionalApplianceDetails": {}
+                     |        }
+                     |    }
+                     |}""".stripMargin
+
+
+      val turnOffConfirmation = """{
+                                  |        "header": {
+                                  |            "messageId": "26fa11a8-accb-4f66-a272-8b1ff7abd722",
+                                  |            "name": "TurnOffConfirmation",
+                                  |            "namespace": "Alexa.ConnectedHome.Control",
+                                  |            "payloadVersion": "2"
+                                  |        },
+                                  |        "payload": {}
+                                  |    }"""
+
+      val os = mkOS
+      new LambdaHandler().handleRequest(mkIS(action), os, fakeContext)
+
+      val actualJ = Json.parse(osToString(os))
+      val actualHeader = (actualJ \ "header").get
+      val actualPayload = (actualJ \ "payload").get
+
+      def checkJv(jv: JsValue, key: String, value: String) = {
+        val strVal = (jv \ key).get.as[JsString].value
+        strVal shouldEqual (value)
+      }
+
+      checkJv(actualHeader, "namespace", "Alexa.ConnectedHome.Control")
+      checkJv(actualHeader, "name", "TurnOffConfirmation")
+      checkJv(actualHeader, "payloadVersion", "2")
+
+      actualPayload shouldEqual(HomeSkillFormats.emptyObject)
+
     }
   }
 

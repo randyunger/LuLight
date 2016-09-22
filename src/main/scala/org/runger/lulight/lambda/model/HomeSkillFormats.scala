@@ -9,16 +9,18 @@ import play.api.libs.json._
 
 object HomeSkillFormats {
 
-  implicit val dAReqHeaderFmt = Json.format[DAReqHeader]
+  val emptyObject = JsObject(Seq.empty)
+  val emptyPayload = JsObject(Map("payload" -> emptyObject))
+
+  implicit val dAReqHeaderFmt = Json.format[ReqHeader]
   implicit val dAReqPayloadFmt = Json.format[DAReqPayload]
   implicit val discoverAppliancesRequestFmt = Json.format[DiscoverAppliancesRequest]
 
-  implicit val daRespHeaderFmt = Json.format[DARespHeader]
+  implicit val responseHeaderFmt = Json.format[ResponseHeader]
   implicit val additionalApplianceDetailsFmt = Json.format[AdditionalApplianceDetails]
   implicit val applianceFmt = Json.format[Appliance]
   implicit val daRespPayloadFmt = Json.format[DARespPayload]
   implicit val discoverAppliancesResponseWrites = {
-    //Json.format[DiscoverAppliancesResponse]
     Writes[DiscoverAppliancesResponse](dar => JsObject(Seq(
       "header" -> Json.toJson(dar.daRespHeader)
       ,"payload" -> Json.toJson(dar.dARespPayload)
@@ -26,7 +28,7 @@ object HomeSkillFormats {
   }
 }
 
-case class DAReqHeader(
+case class ReqHeader(
                    messageId: String
                  ,name: String
                  ,namespace: String
@@ -37,11 +39,11 @@ case class DAReqHeader(
 case class DAReqPayload(accessToken: String)
 
 case class DiscoverAppliancesRequest(
-                                    header: DAReqHeader
+                                    header: ReqHeader
                                     ,payload: DAReqPayload
                                     )
 
-case class DARespHeader(
+case class ResponseHeader(
                          messageId: String
                          ,name: String
                          ,namespace: String
@@ -74,6 +76,6 @@ case class DARespPayload(
                         )
 
 case class DiscoverAppliancesResponse(
-                                     daRespHeader: DARespHeader
+                                     daRespHeader: ResponseHeader
                                      ,dARespPayload: DARespPayload
                                      )
