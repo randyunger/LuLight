@@ -1,6 +1,9 @@
 package org.runger.lulight
 
+import java.util
+
 import org.eclipse.paho.client.mqttv3._
+import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence
 import play.api.libs.json.Json
 
 /**
@@ -22,17 +25,15 @@ object Mqtt {
 object MqttAws extends Logging {
   val host = Settings().moquetteHostAws //"tcp://52.6.125.250:80"
   val clientId = "LuLightToAws"  //Would have to make this unique for multiple servers.
-  val prodInstance = new Mqtt(host, clientId + this.hashCode.toString)
-  def apply() = prodInstance
-
-  def handleAwsEvent(str: String): Unit = {
-    info(str)
-  }
+//  val prodInstance = new Mqtt(host, clientId + this.hashCode.toString)
+//  def apply() = prodInstance
 
 }
 
 class Mqtt(host: String, clientId: String) extends Logging {
-  val client = new MqttClient(host, clientId)
+  val memoryPersistence = new MemoryPersistence //todo: rethink this as necessary
+
+  val client = new MqttClient(host, clientId, memoryPersistence)
 
   val connOps = new MqttConnectOptions()
   connOps.setCleanSession(false)
@@ -59,7 +60,11 @@ class Mqtt(host: String, clientId: String) extends Logging {
     }
   }
 
-  def subscribe(topic: String, f: String => Unit) = {
+  def subscribe(topic: String, f: (String, String) => Unit) = {
+    subscribeMulti(List(topic), f)
+  }
+
+  def subscribeMulti(topics: List[String], f: (String, String) => Unit) = {
     if(!client.isConnected) client.connect()
     val cb = new MqttCallback {
       override def deliveryComplete(token: IMqttDeliveryToken): Unit = {}
@@ -67,7 +72,7 @@ class Mqtt(host: String, clientId: String) extends Logging {
       override def messageArrived(topic: String, message: MqttMessage): Unit = {
         info("Executing Mqtt callback")
         val payload = new String(message.getPayload)
-        val res = f(payload)
+        val res = f(topic, payload)
         info(s"topic: $topic payload: $payload")
       }
 
@@ -89,9 +94,10 @@ class Mqtt(host: String, clientId: String) extends Logging {
       }
     }
 
+    //Only one callback in total!
     client.setCallback(cb)
 
-    client.subscribe(topic)
+    client.subscribe(topics.toArray)
   }
 
 }

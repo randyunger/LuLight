@@ -14,7 +14,7 @@
   </listener>
     <listener>
         <listener-class>
-            org.runger.lulight.Listener
+            org.runger.lulight.LuServletContextListener
         </listener-class>
     </listener>
 </web-app>

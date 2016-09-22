@@ -3,6 +3,7 @@ package org.runger.lulight.lambda
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, OutputStream}
 
 import com.amazonaws.services.lambda.runtime.{ClientContext, CognitoIdentity, Context, LambdaLogger}
+import org.runger.lulight.lambda.model.DiscoverAppliancesResponse
 import org.specs2.mutable.Specification
 import play.api.libs.json.Json
 
@@ -105,9 +106,12 @@ class LambdaHandlerTest extends Specification {
                        |}""".stripMargin
 
       val expectedJ = Json.parse(expectedS)
-      val actualJ = Json.parse(osToString(os))
+      val expectedPayload = expectedJ \ "payload"
 
-      actualJ shouldEqual(expectedJ)
+      val actualJ = Json.parse(osToString(os))
+      val actualPayload = actualJ \ "payload"
+
+      actualPayload shouldEqual(expectedPayload)
     }
   }
 

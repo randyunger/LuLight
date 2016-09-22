@@ -11,7 +11,34 @@ import org.runger.lulight.lambda.model._
 import play.api.libs.json.{JsDefined, JsString, JsUndefined, Json}
 import HomeSkillFormats._
 import ch.qos.logback.classic.LoggerContext
+import org.runger.lulight.MqttAws._
+import org.runger.lulight.{Mqtt, MqttAws}
 import org.slf4j.LoggerFactory
+
+object LambdaHandler {
+  val topicListDevicesRequests = s"/ha/lights/10228/ListDevicesRequests"
+  val topicListDevicesResponses = s"/ha/lights/10228/ListDevicesResponses"
+  val topicDeviceAction = s"/ha/lights/10228/DeviceActionRequests"
+  var isLambda = false
+
+  val defaultActions = List("setPercentage", "incrementPercentage", "decrementPercentage", "turnOff", "turnOn")
+  val noDetails = AdditionalApplianceDetails(None, None, None, None)
+  def buildHomeSkillDevice(applianceId: String, name: String, description: String) = {
+    Appliance(
+      defaultActions
+      ,noDetails
+      ,applianceId
+      ,description
+      ,name
+      ,true //isReachable
+      ,"CDMT"
+      ,"LuLight1.0"
+      ,"1.0"
+    )
+  }
+
+
+}
 
 class LambdaHandler extends RequestStreamHandler{
 
@@ -23,6 +50,7 @@ class LambdaHandler extends RequestStreamHandler{
   override def handleRequest(input: InputStream, output: OutputStream, context: Context): Unit = {
 //    val lc = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
 //    lc.stop()
+    LambdaHandler.isLambda = true
 
     val logger = context.getLogger
 
@@ -40,7 +68,7 @@ class LambdaHandler extends RequestStreamHandler{
 
     val out = nameRes match {
       case JsDefined(JsString("DiscoverAppliancesRequest")) if isFakeContext(context) => discoverAppliancesFake(header) //todo: Remove
-      case JsDefined(JsString("DiscoverAppliancesRequest")) => discoverAppliances(header)
+      case JsDefined(JsString("DiscoverAppliancesRequest")) => discoverAppliances(header, context)
       case JsDefined(JsString("otherTypeGoesHere")) => {"no response 2"} //todo
       case JsUndefined() => {"error 1"} //todo
     }
@@ -54,11 +82,69 @@ class LambdaHandler extends RequestStreamHandler{
   val fakeDetails = AdditionalApplianceDetails(None, None, None, None)
 
   def reqHeaderToRespHeader(dAReqHeader: DAReqHeader): DARespHeader = {
-    DARespHeader("myMessageID", "DiscoverAppliancesResponse", dAReqHeader.namespace, dAReqHeader.payloadVersion)
+    val msgId = "lumsg" + dAReqHeader.messageId.hashCode
+    DARespHeader(msgId, "DiscoverAppliancesResponse", dAReqHeader.namespace, dAReqHeader.payloadVersion)
   }
 
-  def discoverAppliances(dAReqHeader: DAReqHeader): String = {
-    ""
+  def discoverAppliances(dAReqHeader: DAReqHeader, context: Context): String = {
+
+    val mqttAws = new Mqtt(MqttAws.host, "LambdaClient" + this.hashCode.toString)
+    var response = Option.empty[String]
+    val logger = context.getLogger
+
+    mqttAws.subscribe(LambdaHandler.topicListDevicesResponses, (topic, msg) => {
+      logger.log("Received list devices response")
+      response = Option(msg)
+    })
+
+    mqttAws.publish(LambdaHandler.topicListDevicesRequests, "pls")
+
+    val startTime = System.currentTimeMillis()
+
+    //15 second timeout in AWS Lambda
+    def timeIsUp() = System.currentTimeMillis() - startTime > 15 * 1000
+
+    while(response.isEmpty && !timeIsUp) {
+      Thread.sleep(1000)
+      logger.log("no response yet. Sleeping.")
+    }
+
+    logger.log(s"response received: $response")
+
+    //todo: Need to block here until the RPi publishes the device list
+    response match {
+      case Some(respJs) => assembleAppliancesIntoResponse(respJs, dAReqHeader, context) match {
+        case None => "could build response"
+        case Some(respObj) => {
+          val respJv = Json.toJson(respObj)
+          val resp = Json.stringify(respJv)
+          resp
+        }
+      }
+      case _ =>  "No devices"
+    }
+  }
+
+  def assembleAppliancesIntoResponse(appliancesJs: String, dAReqHeader: DAReqHeader, context: Context): Option[DiscoverAppliancesResponse] = {
+    val logger = context.getLogger
+
+    val appJv = Json.parse(appliancesJs)
+    val appList = appJv.asOpt[List[Appliance]]
+
+    appList match {
+      case Some(appliances) => {
+        val header = reqHeaderToRespHeader(dAReqHeader)
+        val respObj = DiscoverAppliancesResponse(header,
+          DARespPayload(appliances)
+        )
+        Option(respObj)
+      }
+      case None => {
+        logger.log(s"Couldnt parse response: $appliancesJs")
+        None
+      }
+    }
+
   }
 
   def discoverAppliancesFake(dAReqHeader: DAReqHeader): String = {

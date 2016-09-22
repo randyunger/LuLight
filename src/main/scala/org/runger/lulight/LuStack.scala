@@ -9,10 +9,11 @@ import org.fusesource.scalate.layout.DefaultLayoutStrategy
 import javax.servlet.http.HttpServletRequest
 
 import ch.qos.logback.classic.LoggerContext
+import org.runger.lulight.lambda.LambdaHandler
 import org.slf4j.LoggerFactory
 import org.slf4j.helpers.SubstituteLoggerFactory
-
-import collection.mutable
+import play.api.libs.json.Json
+import org.runger.lulight.lambda.model.HomeSkillFormats._
 
 trait LuStack extends ScalatraServlet with ScalateSupport {
 
@@ -28,25 +29,54 @@ trait LuStack extends ScalatraServlet with ScalateSupport {
 
 }
 
-class Listener extends ServletContextListener with Logging {
+class LuServletContextListener extends ServletContextListener with Logging {
   override def contextDestroyed(sce: ServletContextEvent): Unit = {}
 
   override def contextInitialized(sce: ServletContextEvent): Unit = {
 
-//    val lf = LoggerFactory.getILoggerFactory
-////    val nn = lf.asInstanceOf[SubstituteLoggerFactory]
-//    val lc = lf.asInstanceOf[LoggerContext]
-////    val n = nn.getLoggerNames
-//    val ll = lc.getLoggerList
-
     //Load initial state
-    info("Getting initial state")
+    logger.info("Getting initial state")
     val fullState = LuStateTracker().fullState(CommandExecutor().execute, 3, 1000).toMap
     fullState
 
     //Connect to Aws
-    info("Connecting to AWS MQTT")
-    MqttAws().subscribe("something", str => MqttAws.handleAwsEvent(str))
-    info("Connected to AWS MQTT")
+    logger.info("Connecting to AWS MQTT")
+
+    val mqttAws = new Mqtt(MqttAws.host, "RPIClient" + this.hashCode.toString)
+
+    //Subscribe to device list requests and Action Requests
+    val subscriptions = List(
+      LambdaHandler.topicListDevicesRequests
+      ,LambdaHandler.topicDeviceAction
+    )
+
+    mqttAws.subscribeMulti(subscriptions, (topic, msg) => {
+
+      topic match {
+
+        case LambdaHandler.topicListDevicesRequests => {
+          info(s"Aws Mqtt received. Topic: topicListDevicesRequests Message: $msg")
+
+          val loads = LuConfig().storedConfig.search("60")  //office cans
+
+          val skillDevices = loads.map(ll => {
+            LambdaHandler.buildHomeSkillDevice(ll.id.toString, ll.outputName, s"${ll.areaName} - ${ll.outputName}")
+          }).toList
+
+          val devicesMsgJV = Json.toJson(skillDevices)
+          val devicesMsg = Json.stringify(devicesMsgJV)
+
+          info(s"sending device list response: $devicesMsg")
+          mqttAws.publish(LambdaHandler.topicListDevicesResponses, devicesMsg)
+        }
+
+        case LambdaHandler.topicDeviceAction => {
+          info(s"Aws Mqtt received. Topic: topicDeviceAction Message: $msg")
+        }
+      }
+
+    })
+
+    logger.info("Connected to AWS MQTT")
   }
 }
