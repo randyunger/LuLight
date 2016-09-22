@@ -1,8 +1,10 @@
 package org.runger.lulight
 
+import com.escalatesoft.subcut.inject.{BindingModule, Injectable}
 import org.eclipse.paho.client.mqttv3._
 import org.runger.lulight.lambda.LambdaHandler
 import play.api.libs.json.Json
+import BindingKeys._
 
 /**
   *
@@ -16,8 +18,8 @@ import play.api.libs.json.Json
 object Mqtt {
   val host = Settings().moquetteHost //"tcp://192.168.99.100:1883"
   val clientId = "LuLight"  //Would have to make this unique for multiple servers.
-  val prodInstance = new Mqtt(Mqtt.host, Mqtt.clientId + this.hashCode.toString, new LoggingImpl {})
-  def apply() = prodInstance
+//  val prodInstance = new Mqtt(Mqtt.host, Mqtt.clientId + this.hashCode.toString)
+//  def apply() = prodInstance
 }
 
 object MqttAws {
@@ -25,17 +27,22 @@ object MqttAws {
 
   val host = Settings().moquetteHostAws //"tcp://52.6.125.250:80"
   val clientId = "LuLightToAws"  //Would have to make this unique for multiple servers.
-  val prodInstance = new Mqtt(host, clientId + this.hashCode.toString, logger)
-  def apply() = prodInstance
+//  val prodInstance = new Mqtt(host, clientId + this.hashCode.toString)
+//  def apply() = prodInstance
 
   def handleAwsEventLocally(topic: String, str: String): Unit = {
-    logger.info(s"Received mqtt from AWS topic $topic: $str")
+//    logger.info(s"Received mqtt from AWS topic $topic: $str")
+    //todo DI
+    println((s"Received mqtt from AWS topic $topic: $str"))
   }
 
 }
 
 //Todo: Logger needs to be injected
-class Mqtt(host: String, clientId: String, logger: Logging) {
+class Mqtt(host: String, clientId: String)(implicit val bindingModule: BindingModule) extends Injectable {
+
+  val logger = injectOptional [Logging] getOrElse { new LoggingImpl {} }
+
   val client = new MqttClient(host, clientId)
 
   val connOps = new MqttConnectOptions()

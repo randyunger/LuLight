@@ -8,11 +8,13 @@ package org.runger.lulight
 
 import akka.actor._
 import akka.event.Logging
-import akka.pattern.{ ask, pipe }
+import akka.pattern.{ask, pipe}
 import akka.actor.OneForOneStrategy
 import akka.actor.SupervisorStrategy._
+import com.escalatesoft.subcut.inject.{BindingModule, Injectable}
 import org.eclipse.paho.client.mqttv3.{MqttClient, MqttConnectOptions}
 import org.runger.lulight.MqttService.LevelChange
+
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -67,19 +69,19 @@ class MqttService(ac: ActorRef) {
 //  val supervisor = AkkaSystem.sys.actorOf(Props[MqttSupervisor], "supervisor")
 //}
 
-class MqttSupervisor extends Actor {
-  val log = Logging(context.system, this)
+class MqttSupervisor(implicit val bindingModule: BindingModule) extends Actor with Injectable {
+  val logger = injectOptional [Logging] getOrElse { new LoggingImpl {} }
 
   override val supervisorStrategy =
 //    OneForOneStrategy(maxNrOfRetries = 10, withinTimeRange = 1 minute) {
     OneForOneStrategy() {
       case _: ArithmeticException      => {
-        log.info("Received Arthim Exc!")
+        logger.info("Received Arthim Exc!")
         Resume
       }
 //      case _: NullPointerException     => Restart
       case ex: java.net.ConnectException => {
-        log.warning("Connection exception!")
+        logger.warn("Connection exception!")
         ex.printStackTrace()
         Restart
       }
@@ -107,12 +109,12 @@ class MqttSupervisor extends Actor {
   def receive = {
 
     case e: Exception => {
-      log.info("Throwing exception for test purposes")
+      logger.info("Throwing exception for test purposes")
       throw e
     }
 
     case p: Props => {
-      log.info("Creating new Mqtt client actor")
+      logger.info("Creating new Mqtt client actor")
       val newActor = context.actorOf(p)
       sender() ! newActor
     }
@@ -120,9 +122,9 @@ class MqttSupervisor extends Actor {
 
 }
 
-class MqttClientActor extends Actor {
+class MqttClientActor(implicit val bindingModule: BindingModule) extends Actor with Injectable {
 
-  val cl = new Mqtt(Mqtt.host, Mqtt.clientId, new LoggingImpl {}) //Should we add something unique to the actor?
+  val cl = new Mqtt(Mqtt.host, Mqtt.clientId) //Should we add something unique to the actor?
 
   def receive = {
     case LevelChange(id, loadState) => {

@@ -17,12 +17,12 @@ import org.slf4j.LoggerFactory
 object LambdaHandler {
   val topicListDevices = s"/ha/lights/10228/ListDevicesRequests"
   val topicDeviceAction = s"/ha/lights/10228/DeviceActionRequests"
-  var isLambda = false
+  var isLambdaEnv = false
 
 //  private var logger: Logging = new LoggingImpl {}
   def getLogger(context: Context): Logging = {
-    val lc = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
-    lc.stop()
+//    val lc = LoggerFactory.getILoggerFactory.asInstanceOf[LoggerContext]
+//    lc.stop()
     new LamdbaLoggerWrapper(context.getLogger)
   }
 }
@@ -34,7 +34,7 @@ class LambdaHandler extends RequestStreamHandler {
   }
 
   override def handleRequest(input: InputStream, output: OutputStream, context: Context): Unit = {
-    LambdaHandler.isLambda = true
+    LambdaHandler.isLambdaEnv = true
 
     val logger = LambdaHandler.getLogger(context)
 
@@ -71,7 +71,7 @@ class LambdaHandler extends RequestStreamHandler {
 
   def discoverAppliances(dAReqHeader: DAReqHeader, context: Context): String = {
     val logger = LambdaHandler.getLogger(context)
-    val mqttAws = new Mqtt(MqttAws.host, MqttAws.clientId + this.hashCode.toString, logger)
+    val mqttAws = new Mqtt(MqttAws.host, MqttAws.clientId + this.hashCode.toString)
     mqttAws.publish(LambdaHandler.topicListDevices, "pls")
     //todo: Need to block here until the RPi publishes the device list
     "ok"

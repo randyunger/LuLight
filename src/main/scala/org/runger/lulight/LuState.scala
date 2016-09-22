@@ -5,6 +5,7 @@ package org.runger.lulight
  */
 
 import Utils._
+import com.escalatesoft.subcut.inject.{BindingModule, Injectable}
 import org.joda.time.DateTime
 import play.api.libs.json.Json
 
@@ -44,11 +45,13 @@ object LuStateTracker {
   val prodState = new LuStateTracker(LuConfig().storedConfig)
 }
 
-class LuStateTracker(config: LoadSet) {
+class LuStateTracker(config: LoadSet)(implicit bindingModule: BindingModule) extends Injectable {
   val logger = new LoggingImpl {}
 
   val mqtt = MqttService()
   val state = new ConcMap[LightingLoad, LoadState]()
+
+  val mqttClient = new Mqtt(Mqtt.host, Mqtt.clientId + this.getClass.hashCode())
 
   def loadSet = {
     val loadSet = state.toSet
@@ -77,7 +80,7 @@ class LuStateTracker(config: LoadSet) {
         loadO match {
           case Some(load) => {
             state += (load -> st)
-            Mqtt().publish(load.id, st)
+            mqttClient.publish(load.id, st)
 //            mqtt.publish(load.id, st)
             logger.info(s"Updated state: ${load} is ${st}")
             "updated"

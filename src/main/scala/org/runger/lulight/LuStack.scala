@@ -8,6 +8,7 @@ import org.fusesource.scalate.{Binding, TemplateEngine}
 import org.fusesource.scalate.layout.DefaultLayoutStrategy
 import javax.servlet.http.HttpServletRequest
 
+import com.escalatesoft.subcut.inject.{BindingModule, Injectable}
 import org.runger.lulight.lambda.LambdaHandler
 
 import collection.mutable
@@ -26,7 +27,7 @@ trait LuStack extends ScalatraServlet with ScalateSupport {
 
 }
 
-class Listener extends ServletContextListener {
+class Listener(implicit val bindingModule: BindingModule) extends ServletContextListener with Injectable {
 
   val logger = new LoggingImpl {}
 
@@ -43,10 +44,11 @@ class Listener extends ServletContextListener {
     logger.info("Connecting to AWS MQTT")
 
     //Subscribe to device list requests
-    MqttAws().subscribe(LambdaHandler.topicListDevices, str => MqttAws.handleAwsEventLocally(LambdaHandler.topicListDevices, str))
+    val mqttAws = new Mqtt(MqttAws.host, MqttAws.clientId + this.hashCode.toString)
+    mqttAws.subscribe(LambdaHandler.topicListDevices, str => MqttAws.handleAwsEventLocally(LambdaHandler.topicListDevices, str))
 
     //Subscribe to action requests
-    MqttAws().subscribe(LambdaHandler.topicDeviceAction, str => MqttAws.handleAwsEventLocally(LambdaHandler.topicDeviceAction, str))
+    mqttAws.subscribe(LambdaHandler.topicDeviceAction, str => MqttAws.handleAwsEventLocally(LambdaHandler.topicDeviceAction, str))
     logger.info("Connected to AWS MQTT")
   }
 }

@@ -1,6 +1,7 @@
 package org.runger.lulight
 
 import com.amazonaws.services.lambda.runtime.LambdaLogger
+import org.runger.lulight.lambda.LambdaHandler
 import org.slf4j.LoggerFactory
 
 /**
@@ -37,6 +38,14 @@ object Utils {
   }
 
 }
+
+//object Logging {
+//  def apply(): Logging = {
+//    if(LambdaHandler.isLambdaEnv) {
+//
+//    }
+//  }
+//}
 
 trait Logging {
   def info(msg: String)
