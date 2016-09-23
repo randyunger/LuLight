@@ -25,7 +25,7 @@ class HardSettings extends Settings {
   val fakeTelnet = true
 
   val moquetteHost = "tcp://192.168.99.100:1883"
-  val moquetteHostAws = "tcp://52.6.125.250:80"
+  val moquetteHostAws = "tcp://52.44.173.143:1883" //"tcp://52.6.125.250:80"
 }
 
 class FileSettings extends HardSettings {
@@ -35,5 +35,5 @@ class FileSettings extends HardSettings {
 
   override val fakeTelnet = false
   override val moquetteHost = "tcp://black-pearl:1883"
-  override val moquetteHostAws = "tcp://52.6.125.250:80"
+  override val moquetteHostAws = "tcp://52.44.173.143:1883" //prev: "tcp://52.6.125.250:80"
 }
