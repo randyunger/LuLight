@@ -37,7 +37,9 @@ class LambdaHandlerTest extends Specification {
     override def getClientContext: ClientContext = ???
 
     override def getLogger: LambdaLogger = new LambdaLogger {
-      override def log(string: String): Unit = {}
+      override def log(string: String): Unit = {
+        println(string)
+      }
     }
 
     override def getMemoryLimitInMB: Int = ???
@@ -116,6 +118,8 @@ class LambdaHandlerTest extends Specification {
 
     "handle TurnOff requests" in {
 
+      skipped //Since this will send a real mqtt message
+
       val action = """{
                      |    "header": {
                      |        "namespace": "Alexa.ConnectedHome.Control",
@@ -144,8 +148,9 @@ class LambdaHandlerTest extends Specification {
                                   |    }"""
 
       val os = mkOS
+      println("pre handler")
       new LambdaHandler().handleRequest(mkIS(action), os, fakeContext)
-
+      println("post handler")
       val actualJ = Json.parse(osToString(os))
       val actualHeader = (actualJ \ "header").get
       val actualPayload = (actualJ \ "payload").get

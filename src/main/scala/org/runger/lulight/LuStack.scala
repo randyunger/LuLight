@@ -12,7 +12,7 @@ import ch.qos.logback.classic.LoggerContext
 import org.runger.lulight.lambda.LambdaHandler
 import org.slf4j.LoggerFactory
 import org.slf4j.helpers.SubstituteLoggerFactory
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import org.runger.lulight.lambda.model.HomeSkillFormats._
 
 trait LuStack extends ScalatraServlet with ScalateSupport {
@@ -30,6 +30,9 @@ trait LuStack extends ScalatraServlet with ScalateSupport {
 }
 
 class LuServletContextListener extends ServletContextListener with Logging {
+
+  val lambdaActioner = new LambdaDeviceActions()
+
   override def contextDestroyed(sce: ServletContextEvent): Unit = {}
 
   override def contextInitialized(sce: ServletContextEvent): Unit = {
@@ -42,7 +45,7 @@ class LuServletContextListener extends ServletContextListener with Logging {
     //Connect to Aws
     logger.info("Connecting to AWS MQTT")
 
-    val mqttAws = new Mqtt(MqttAws.host, "RPIClient" + this.hashCode.toString)
+    val mqttAws = new Mqtt(MqttAws.host, "RPIClient-" + "10228-" + System.currentTimeMillis().toString)
 
     //Subscribe to device list requests and Action Requests
     val subscriptions = List(
@@ -52,10 +55,12 @@ class LuServletContextListener extends ServletContextListener with Logging {
 
     mqttAws.subscribeMulti(subscriptions, (topic, msg) => {
 
+      info(s"Aws Mqtt received. Topic: $topic Message: $msg")
+
       topic match {
 
         case LambdaHandler.topicListDevicesRequests => {
-          info(s"Aws Mqtt received. Topic: topicListDevicesRequests Message: $msg")
+
 
           val loads = LuConfig().storedConfig.search("60")  //office cans
 
@@ -70,8 +75,10 @@ class LuServletContextListener extends ServletContextListener with Logging {
           mqttAws.publish(LambdaHandler.topicListDevicesResponses, devicesMsg)
         }
 
-        case LambdaHandler.`topicDeviceActions` => {
-          info(s"Aws Mqtt received. Topic: topicDeviceAction Message: $msg")
+        case LambdaHandler.topicDeviceActions => {
+          info(s"Got a device request")
+          val msgJv = Json.parse(msg)
+          lambdaActioner.doAction(msgJv)
         }
       }
 
@@ -79,4 +86,23 @@ class LuServletContextListener extends ServletContextListener with Logging {
 
     logger.info("Connected to AWS MQTT")
   }
+}
+
+class LambdaDeviceActions() extends Logging {
+
+  def doAction(msg: JsValue) = {
+    val action = (msg \ "name").get.as[String]
+    action match {
+      case "TurnOffRequest" => {
+        val id = (msg \ "payload" \ "appliance" \ "applianceId").get.as[String]
+        val level = 0
+        val loads = LuConfig().storedConfig.search(id)
+        loads.foreach(load => {
+          info(s"setting load $load to $level")
+          CommandExecutor().execute(load.set(level))
+        })
+      }
+    }
+  }
+
 }

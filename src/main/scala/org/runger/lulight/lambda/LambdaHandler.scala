@@ -15,6 +15,8 @@ import org.runger.lulight.MqttAws._
 import org.runger.lulight.{Mqtt, MqttAws}
 import org.slf4j.LoggerFactory
 
+//import scala.concurrent.Future
+
 object LambdaHandler {
   val charset = "UTF-8"
   val topicListDevicesRequests = s"/ha/lights/10228/ListDevicesRequests"
@@ -38,7 +40,7 @@ object LambdaHandler {
     )
   }
 
-
+  val mqttAws = new Mqtt(MqttAws.host, "LambdaClient" + this.hashCode.toString)
 }
 
 class LambdaHandler extends RequestStreamHandler{
@@ -96,13 +98,15 @@ class LambdaHandler extends RequestStreamHandler{
     val logger = context.getLogger
     logger.log("received turn off command")
 
-    val mqttAws = new Mqtt(MqttAws.host, "LambdaClient" + this.hashCode.toString)
     var response = Option.empty[String]
-
-//    val reqJv = Json.toJson(reqHeader)
     val reqJs = Json.stringify(cmdJv)
 
-    mqttAws.publish(LambdaHandler.topicDeviceActions, reqJs)
+    //Don't block on mqtt
+//    import scala.concurrent.ExecutionContext.Implicits.global
+//    Future {
+
+    LambdaHandler.mqttAws.publish(LambdaHandler.topicDeviceActions, reqJs)
+//    }
 
     val hdr = ResponseHeader(System.currentTimeMillis().toString, "TurnOffConfirmation", "Alexa.ConnectedHome.Control", "2")
     val hdrJv = Json.toJson(hdr)

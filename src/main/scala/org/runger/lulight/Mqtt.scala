@@ -36,7 +36,7 @@ class Mqtt(host: String, clientId: String) extends Logging {
   val client = new MqttClient(host, clientId, memoryPersistence)
 
   val connOps = new MqttConnectOptions()
-  connOps.setCleanSession(false)
+  connOps.setCleanSession(true)
 
   def publish(loadId: Int, loadState: LoadState): Unit = {
 //    Mqtt().publish(s"/ha/lights/10228/${load.id}", st.level.toString)
@@ -48,7 +48,7 @@ class Mqtt(host: String, clientId: String) extends Logging {
 
   def publish(topic: String, msg: String): Unit = {
     try {
-      if(!client.isConnected) client.connect()
+      if(!client.isConnected) client.connect(connOps)
       val bytes = msg.getBytes
       val mqMsg = new MqttMessage(bytes)
       mqMsg.setQos(2)
@@ -82,10 +82,10 @@ class Mqtt(host: String, clientId: String) extends Logging {
         //reconnect logic here
         if(!client.isConnected) {
           info("retrying mqtt connection")
-          Thread.sleep(10*1000)
+          Thread.sleep(1*1000)
           try {
             client.connect()
-            //todo: does this not resubscribe? If we want to resubscribe, set clean session = false
+            //todo: does this not resubscribe? If we want to resubscribe, set clean session = true
           } catch {
             case t: Throwable => connectionLost(t)
           }
