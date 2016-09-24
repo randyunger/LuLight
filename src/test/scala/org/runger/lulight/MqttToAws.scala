@@ -10,7 +10,7 @@ class MqttToAws extends Specification with Logging {
 
   "Mqtt to Aws" should {
     "pub" in {
-      val client = new Mqtt(Settings().moquetteHostAws, "devClient1")
+      val client = new Mqtt(Settings().mosquittoHostAws, "devClient1")
       client.publish("something", "A message!")
       ok
     }

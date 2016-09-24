@@ -40,7 +40,6 @@ object LambdaHandler {
     )
   }
 
-  val mqttAws = new Mqtt(MqttAws.host, "LambdaClient" + this.hashCode.toString)
 }
 
 class LambdaHandler extends RequestStreamHandler{
@@ -72,8 +71,9 @@ class LambdaHandler extends RequestStreamHandler{
     val out = nameRes match {
       case JsDefined(JsString("DiscoverAppliancesRequest")) if isFakeContext(context) => discoverAppliancesFake(header) //todo: Remove
       case JsDefined(JsString("DiscoverAppliancesRequest")) => discoverAppliances(header, context)
-      case JsDefined(JsString("TurnOnRequest")) => {"no response 2"} //todo
+      case JsDefined(JsString("TurnOnRequest")) => turnOn(cmdJv, context)
       case JsDefined(JsString("TurnOffRequest")) => turnOff(cmdJv, context)
+//      case JsDefined(JsString("SetPercentageRequest")) => setPercentage(cmdJv, context)
       case JsUndefined() => {"error 1"} //todo
       case _ => {
         logger.log(s"Could not match request $nameRes")
@@ -104,11 +104,32 @@ class LambdaHandler extends RequestStreamHandler{
     //Don't block on mqtt
 //    import scala.concurrent.ExecutionContext.Implicits.global
 //    Future {
-
-    LambdaHandler.mqttAws.publish(LambdaHandler.topicDeviceActions, reqJs)
+    val mqttAws = new Mqtt(MqttAws.host, "LambdaClient" + this.hashCode.toString)
+    mqttAws.publish(LambdaHandler.topicDeviceActions, reqJs)
 //    }
 
     val hdr = ResponseHeader(System.currentTimeMillis().toString, "TurnOffConfirmation", "Alexa.ConnectedHome.Control", "2")
+    val hdrJv = Json.toJson(hdr)
+
+    val respJv = JsObject(Map("header" -> hdrJv, "payload" -> emptyObject))
+    Json.stringify(respJv)
+  }
+
+  def turnOn(cmdJv: JsValue, context: Context): String = {
+    val logger = context.getLogger
+    logger.log("received turn on command")
+
+    var response = Option.empty[String]
+    val reqJs = Json.stringify(cmdJv)
+
+    //Don't block on mqtt
+    //    import scala.concurrent.ExecutionContext.Implicits.global
+    //    Future {
+    val mqttAws = new Mqtt(MqttAws.host, "LambdaClient" + this.hashCode.toString)
+    mqttAws.publish(LambdaHandler.topicDeviceActions, reqJs)
+    //    }
+
+    val hdr = ResponseHeader(System.currentTimeMillis().toString, "TurnOnConfirmation", "Alexa.ConnectedHome.Control", "2")
     val hdrJv = Json.toJson(hdr)
 
     val respJv = JsObject(Map("header" -> hdrJv, "payload" -> emptyObject))

@@ -91,7 +91,7 @@ class LuServletContextListener extends ServletContextListener with Logging {
 class LambdaDeviceActions() extends Logging {
 
   def doAction(msg: JsValue) = {
-    val action = (msg \ "name").get.as[String]
+    val action = (msg \ "header" \ "name").get.as[String]
     action match {
       case "TurnOffRequest" => {
         val id = (msg \ "payload" \ "appliance" \ "applianceId").get.as[String]
@@ -102,6 +102,17 @@ class LambdaDeviceActions() extends Logging {
           CommandExecutor().execute(load.set(level))
         })
       }
+
+      case "TurnOnRequest" => {
+        val id = (msg \ "payload" \ "appliance" \ "applianceId").get.as[String]
+        val level = 100
+        val loads = LuConfig().storedConfig.search(id)
+        loads.foreach(load => {
+          info(s"setting load $load to $level")
+          CommandExecutor().execute(load.set(level))
+        })
+      }
+
     }
   }
 
