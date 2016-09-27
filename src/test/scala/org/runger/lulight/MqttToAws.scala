@@ -16,7 +16,7 @@ class MqttToAws extends Specification with Logging {
     }
   }
 
-  "Mqtt to Aws moquitto" should {
+  "Mqtt to Aws mosquitto" should {
     "pub" in {
       println("Opening connection")
       val client = new Mqtt("tcp://52.44.173.143:1883", "mosqClient")

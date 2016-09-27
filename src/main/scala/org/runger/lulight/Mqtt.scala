@@ -36,7 +36,7 @@ class Mqtt(host: String, clientId: String) extends Logging {
   val client = new MqttClient(host, clientId, memoryPersistence)
 
   val connOps = new MqttConnectOptions()
-  connOps.setCleanSession(true)
+  connOps.setCleanSession(false)
 
   def publish(loadId: Int, loadState: LoadState): Unit = {
 //    Mqtt().publish(s"/ha/lights/10228/${load.id}", st.level.toString)
@@ -60,12 +60,27 @@ class Mqtt(host: String, clientId: String) extends Logging {
     }
   }
 
+  def publishAndRetain(topic: String, msg: String): Unit = {
+    try {
+      if(!client.isConnected) client.connect(connOps)
+      val bytes = msg.getBytes
+      val mqMsg = new MqttMessage(bytes)
+      mqMsg.setQos(2)
+      client.publish(topic, bytes, 2, true)
+    } catch {
+      case ex: Exception => {
+        warn(s"mqtt exception", ex)
+      }
+    }
+  }
+
   def subscribe(topic: String, f: (String, String) => Unit) = {
     subscribeMulti(List(topic), f)
   }
 
   def subscribeMulti(topics: List[String], f: (String, String) => Unit) = {
-    if(!client.isConnected) client.connect()
+    if(!client.isConnected) client.connect(connOps)
+
     val cb = new MqttCallback {
       override def deliveryComplete(token: IMqttDeliveryToken): Unit = {}
 
@@ -84,8 +99,8 @@ class Mqtt(host: String, clientId: String) extends Logging {
           info("retrying mqtt connection")
           Thread.sleep(1*1000)
           try {
-            client.connect()
-            //todo: does this not resubscribe? If we want to resubscribe, set clean session = true
+            client.connect(connOps)
+            //todo: does this not resubscribe? If we want to resubscribe, set clean session = false
           } catch {
             case t: Throwable => connectionLost(t)
           }
