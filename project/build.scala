@@ -10,13 +10,12 @@ import com.gilt.aws.lambda.{AwsLambdaPlugin, _}
 
 object LuLightBuild extends Build {
   val Name = "LuLight"
-  //  val Version = "0.1.1"
   val ScalaVersion = "2.11.6"
   val ScalatraVersion = "2.4.0-RC2-2"
   val jettyVersion = "9.3.5.v20151012"
 
   lazy val commonSettings = Seq(
-    version := "0.1.1",
+    version := "0.2.1",
     organization := "org.runger.lulight",
     scalaVersion := ScalaVersion
   )

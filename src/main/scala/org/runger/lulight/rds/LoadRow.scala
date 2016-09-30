@@ -12,15 +12,17 @@ import org.runger.lulight.rds.RDSConfig.api._
 case class LoadRow(id: UUID, projectId: UUID, localId: Int,  displayName: String, roomName: String,
                    fixtureType: String, privacyStatus: String, bulbType: String)
 
-object LoadTable {
-  val locations = TableQuery[ProjectTable]
+object Tables {
+  val projects = TableQuery[ProjectTable]
+  val loads = TableQuery[LoadTable]
+  val groups = TableQuery[LoadGroupTable]
 }
 
 class LoadTable(tag: Tag) extends Table[LoadRow](tag, "Loads") with Logging {
 
   def id = column[UUID]("id", O.PrimaryKey)
   def projectId = column[UUID]("projectId")
-  def project = foreignKey("locationId", projectId, LoadTable.locations)(_.id, ForeignKeyAction.Restrict)
+  def project = foreignKey("projectId", projectId, Tables.projects)(_.id, ForeignKeyAction.Restrict)
   def localId = column[Int]("localId")
   def displayName = column[String]("displayName")
 
