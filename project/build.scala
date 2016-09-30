@@ -83,6 +83,11 @@ object LuLightBuild extends Build {
         ,"com.amazonaws" % "aws-lambda-java-core" % "1.1.0"
         ,"com.amazonaws" % "aws-lambda-java-log4j" % "1.0.0"
 //        ,"com.fasterxml.jackson.module" % "jackson-module-scala_2.11" % "2.8.2"
+        ,"com.typesafe.slick" %% "slick" % "3.1.1"
+        ,"com.typesafe.slick" %% "slick-hikaricp" % "3.1.1"
+        ,"com.h2database" % "h2" % "1.4.191"
+//        ,"postgresql" % "postgresql" % "9.1-901.jdbc4"
+        ,"org.postgresql" % "postgresql" % "9.4.1211"
       ),
       scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
         Seq(

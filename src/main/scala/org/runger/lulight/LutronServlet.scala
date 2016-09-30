@@ -66,11 +66,11 @@ class LutronServlet extends LuStack with Logging {
     contentType="text/html"
     val loadSetWState = LuConfig().storedConfig.withState
     val byArea = loadSetWState.loads.groupBy(_.areaName)
-//    val fullState = LuStateTracker().fullState(CommandExecutor().execute, 3, 1000).toMap
-//    val fullStateById = fullState.map{ case(k, v) => (k.id.toString, v)}
-//
-//    val fullStateJson = Json.asciiStringify(Json.toJson(fullStateById))
-    scaml("loads", "loadSet" -> LuConfig().storedConfig, "byArea" -> byArea)
+    val fullState = LuStateTracker().fullState(CommandExecutor().execute, 3, 1000).toMap
+    val fullStateById = fullState.map{ case(k, v) => (k.id.toString, v)}
+
+    val fullStateJson = Json.asciiStringify(Json.toJson(fullStateById))
+    scaml("loads", "loadSet" -> LuConfig().storedConfig, "byArea" -> byArea, "fullStateJson"->fullStateJson)
   }
 
   get("/state") {
