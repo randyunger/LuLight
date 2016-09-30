@@ -60,6 +60,7 @@ class RDSConfigTest extends Specification {
 
           , loads += load1
           , loads += load2
+//          , loads.filter(_.bulbType == "led").result
           //        , org += OrganizationRow()
 
           , loads.result.map(println)

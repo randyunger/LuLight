@@ -141,3 +141,18 @@ object BootstrapData extends App {
   }
 
 }
+
+object TestQueries extends App {
+  import BootstrapIds._
+  import RDSConfig.api._
+  import scala.concurrent.ExecutionContext.Implicits.global
+
+  val db = Database.forURL("jdbc:postgresql://black-pearl:5432/", driver = "org.postgresql.Driver", user="postgres")
+  val projects = TableQuery[ProjectTable]
+  val loads = TableQuery[LoadTable]
+
+  val res = Await.result(db.run(
+    loads.filter(_.bulbType === "led").result.map(r => r.foreach(println))
+  ), Duration.Inf)
+
+}
