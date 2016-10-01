@@ -10,7 +10,7 @@ import scala.concurrent.duration.{Duration, _}
   */
 
 object BootstrapIds {
-  val projectId = UUID.fromString("494e8b61-e98d-4dbe-ae8b-c63a03afd8da")
+  val ungerProjectId = UUID.fromString("494e8b61-e98d-4dbe-ae8b-c63a03afd8da")
 
   //Groups
   val brkRmGroupId = UUID.fromString("111e8b61-e98d-4dbe-ae8b-c63a03afd8da")
@@ -21,6 +21,7 @@ object BootstrapIds {
   val famCanId = UUID.fromString("444e8b61-e98d-4dbe-ae8b-c63a03afd8da")
   val brkCanId = UUID.fromString("555e8b61-e98d-4dbe-ae8b-c63a03afd8da")
   val brkSconceId = UUID.fromString("666e8b61-e98d-4dbe-ae8b-c63a03afd8da")
+  val outdoorLightId = UUID.fromString("777e8b61-e98d-4dbe-ae8b-c63a03afd8da")
 }
 
 object BootstrapData extends App {
@@ -37,39 +38,48 @@ object BootstrapData extends App {
   createAssoc()
 
   def createAssoc(): Unit ={
-    val assoc = TableQuery[LoadGroupAssocLoadTable]
+    val assocLoad = TableQuery[LoadGroupAssocLoadTable]
+    val assocGroup = TableQuery[LoadGroupAssocSubGroupTable]
 
     //Cans assoc
-    val brkCanAssoc = LoadGroupAssocLoadRow(cansGroupId, Some(brkCanId), None)
-    val famCanAssoc = LoadGroupAssocLoadRow(cansGroupId, Some(famCanId), None)
+    val brkCanAssoc = LoadGroupAssocLoadRow(cansGroupId, brkCanId)
+    val famCanAssoc = LoadGroupAssocLoadRow(cansGroupId, famCanId)
 
     //Brk assoc
-    val brkCanAssoc2 = LoadGroupAssocLoadRow(brkRmGroupId, Some(brkCanId), None)
-    val brkSconce = LoadGroupAssocLoadRow(brkRmGroupId, Some(brkSconceId), None)
+    val brkCanAssoc2 = LoadGroupAssocLoadRow(brkRmGroupId, brkCanId)
+    val brkSconce = LoadGroupAssocLoadRow(brkRmGroupId, brkSconceId)
 
-    //All assoc - cans + brk
-    val allAssocCans = LoadGroupAssocLoadRow(allGroupId, None, Some(cansGroupId))
-    val allAssocBrk = LoadGroupAssocLoadRow(allGroupId, None, Some(brkRmGroupId))
+    //All assoc - cans + brk + single outdoor
+    val allAssocCans = LoadGroupAssocSubGroupRow(allGroupId, cansGroupId)
+    val allAssocBrk = LoadGroupAssocSubGroupRow(allGroupId, brkRmGroupId)
+    val allAssocOut = LoadGroupAssocLoadRow(allGroupId, outdoorLightId)
 
-    createInTransaction("Create assoc table", assoc.schema.create)
+    createInTransaction("Create assoc Load table", assocLoad.schema.create)
+    createInTransaction("Create assoc Subgroup table", assocGroup.schema.create)
 
     insertInTransaction("Populate assoc table",
-      assoc += brkCanAssoc
-      , assoc += famCanAssoc
-      , assoc += brkCanAssoc2
-      , assoc += brkSconce
-      , assoc += allAssocCans
-      , assoc += allAssocBrk
-      , assoc.result.map(println)
+      //Put cans in can group
+      assocLoad += brkCanAssoc
+      , assocLoad += famCanAssoc
+      //Put breakfast in brk group
+      , assocLoad += brkCanAssoc2
+      , assocLoad += brkSconce
+      //Put both above groups, plus outdoor light in All group
+      , assocGroup += allAssocCans
+      , assocGroup+= allAssocBrk
+      , assocLoad += allAssocOut
+
+      , assocLoad.result.map(println)
     )
   }
 
   def createLoads(): Unit = {
     val loads = TableQuery[LoadTable]
 
-    val brkCansLoad = LoadRow(brkCanId, projectId, 10, "Breakfast Room Cans", "Breakfast Room", "Cans", "pub", "led")
-    val brkSconceLoad = LoadRow(brkSconceId, projectId, 11, "Breakfast sconces", "Living Room", "Cans", "pub", "led")
-    val famCansLoad = LoadRow(famCanId, projectId, 12, "Fam Room Cans", "Living Room", "Cans", "pub", "led")
+    val brkCansLoad = LoadRow(brkCanId, ungerProjectId, 10, "Breakfast Room Cans", "Breakfast Room", "Cans", "pub", "led")
+    val brkSconceLoad = LoadRow(brkSconceId, ungerProjectId, 11, "Breakfast sconces", "Living Room", "Cans", "pub", "led")
+    val famCansLoad = LoadRow(famCanId, ungerProjectId, 12, "Fam Room Cans", "Living Room", "Cans", "pub", "led")
+    val outdoorLoad = LoadRow(outdoorLightId, ungerProjectId, 13, "Outdoor light", "Living Room", "Cans", "pub", "led")
 
     createInTransaction("Create load table", loads.schema.create)
 
@@ -77,6 +87,7 @@ object BootstrapData extends App {
       loads += brkCansLoad
       , loads += brkSconceLoad
       , loads += famCansLoad
+      , loads += outdoorLoad
       , loads.result.map(println)
     )
 
@@ -85,9 +96,9 @@ object BootstrapData extends App {
   def createGroups(): Unit = {
     val groups = TableQuery[LoadGroupTable]
 
-    val brkRoom = LoadGroupRow(brkRmGroupId, projectId, "Breakfast Room")
-    val allCans = LoadGroupRow(cansGroupId, projectId, "All Cans")
-    val all = LoadGroupRow(allGroupId, projectId, "All")
+    val brkRoom = LoadGroupRow(brkRmGroupId, ungerProjectId, "Breakfast Room")
+    val allCans = LoadGroupRow(cansGroupId, ungerProjectId, "All Cans")
+    val all = LoadGroupRow(allGroupId, ungerProjectId, "All")
 
     createInTransaction("Create group table", groups.schema.create)
 
@@ -102,7 +113,7 @@ object BootstrapData extends App {
 
   def createProjects(): Unit = {
     val projects = TableQuery[ProjectTable]
-    val proj1 = ProjectRow(projectId, "Unger House")
+    val proj1 = ProjectRow(ungerProjectId, "Unger House")
 
     createInTransaction("Create Project table", projects.schema.create)
 
@@ -150,9 +161,31 @@ object TestQueries extends App {
   val db = Database.forURL("jdbc:postgresql://black-pearl:5432/", driver = "org.postgresql.Driver", user="postgres")
   val projects = TableQuery[ProjectTable]
   val loads = TableQuery[LoadTable]
+  val groups = TableQuery[LoadGroupTable]
+  val assocs = TableQuery[LoadGroupAssocLoadTable]
 
   val res = Await.result(db.run(
-    loads.filter(_.bulbType === "led").result.map(r => r.foreach(println))
+    findGroupsWithLoads().result.head.map{ case (gId, dName, lId, lName, lBulb) => {
+      println(s"($gId, $dName, $lId, $lName, $lBulb)")
+    }}
   ), Duration.Inf)
+
+  def findGroupsWithLoads() ={
+    for {
+      group <- groups
+      if group.projectId === ungerProjectId
+      assoc <- assocs
+      if assoc.hostGroupId === group.id
+      load <- loads
+      if assoc.loadId === load.id
+    } yield (group.id, group.name, load.id, load.displayName, load.bulbType)
+  }
+
+  def findLeds(): Unit = {
+    val res = Await.result(db.run(
+      loads.filter(_.bulbType === "led").result.map(r => r.foreach(println))
+    ), Duration.Inf)
+  }
+
 
 }
