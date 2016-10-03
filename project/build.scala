@@ -44,8 +44,6 @@ object LuLightBuild extends Build {
     , roleArn := Some("arn:aws:iam::089420071793:role/lambda_basic_execution")
   )
 
-  resolvers += Resolver.jcenterRepo
-  resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases"
   //  enablePlugins(TomcatPlugin)
 
   lazy val project = Project (
@@ -58,6 +56,9 @@ object LuLightBuild extends Build {
       //      scalaVersion := ScalaVersion,
       resolvers += Classpaths.typesafeReleases,
       resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases",
+      resolvers += Resolver.jcenterRepo,
+      resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/releases",
+      resolvers += "anormcypher" at "http://repo.anormcypher.org/",
       libraryDependencies ++= Seq(
         "org.scala-lang" % "scala-library" % ScalaVersion
         ,"org.scala-lang" % "scala-reflect" % ScalaVersion
@@ -87,6 +88,8 @@ object LuLightBuild extends Build {
         ,"com.h2database" % "h2" % "1.4.191"
 //        ,"postgresql" % "postgresql" % "9.1-901.jdbc4"
         ,"org.postgresql" % "postgresql" % "9.4.1211"
+        ,"org.anormcypher" %% "anormcypher" % "0.9.1"
+
       ),
       scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
         Seq(

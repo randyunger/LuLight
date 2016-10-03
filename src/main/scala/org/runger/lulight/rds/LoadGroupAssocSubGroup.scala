@@ -17,7 +17,7 @@ class LoadGroupAssocSubGroupTable(tag: Tag) extends Table[LoadGroupAssocSubGroup
   def subGroupId = column[UUID]("subGroupId")
   def subGroup = foreignKey("subGroupId", subGroupId, Tables.groups)(_.id, ForeignKeyAction.Restrict)
 
-  def uniqueHostLoad = index("uniqueHostLoadSub", (hostGroupId, subGroupId), unique = true)
+  def uniqueHostLoad = index("uniqueHostGroupSubGroup", (hostGroupId, subGroupId), unique = true)
 
   val toRow = (tup: (UUID, UUID)) => {
     LoadGroupAssocSubGroupRow(tup._1, tup._2)
