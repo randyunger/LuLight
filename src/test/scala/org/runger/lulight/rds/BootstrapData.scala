@@ -17,6 +17,10 @@ object BootstrapIds {
   val cansGroupId = UUID.fromString("222e8b61-e98d-4dbe-ae8b-c63a03afd8da")
   val allGroupId = UUID.fromString("333e8b61-e98d-4dbe-ae8b-c63a03afd8da")
 
+  //To test subgroups
+  val super1Id = UUID.fromString("011e8b61-e98d-4dbe-ae8b-c63a03afd8da")
+  val super2Id = UUID.fromString("022e8b61-e98d-4dbe-ae8b-c63a03afd8da")
+
   //Lights
   val famCanId = UUID.fromString("444e8b61-e98d-4dbe-ae8b-c63a03afd8da")
   val brkCanId = UUID.fromString("555e8b61-e98d-4dbe-ae8b-c63a03afd8da")
@@ -54,6 +58,11 @@ object BootstrapData extends App {
     val allAssocBrk = LoadGroupAssocSubGroupRow(allGroupId, brkRmGroupId)
     val allAssocOut = LoadGroupAssocLoadRow(allGroupId, outdoorLightId)
 
+    //Super assocs
+    val super1Assoc = LoadGroupAssocSubGroupRow(super1Id, allGroupId)
+    val super2Assoc = LoadGroupAssocSubGroupRow(super2Id, super1Id)
+
+
     createInTransaction("Create assoc Load table", assocLoad.schema.create)
     createInTransaction("Create assoc Subgroup table", assocGroup.schema.create)
 
@@ -66,8 +75,11 @@ object BootstrapData extends App {
       , assocLoad += brkSconce
       //Put both above groups, plus outdoor light in All group
       , assocGroup += allAssocCans
-      , assocGroup+= allAssocBrk
+      , assocGroup += allAssocBrk
       , assocLoad += allAssocOut
+
+      , assocGroup += super1Assoc
+      , assocGroup += super2Assoc
 
       , assocLoad.result.map(println)
     )
@@ -100,12 +112,21 @@ object BootstrapData extends App {
     val allCans = LoadGroupRow(cansGroupId, ungerProjectId, "All Cans")
     val all = LoadGroupRow(allGroupId, ungerProjectId, "All")
 
+    //Subgroups
+    val super1grp = LoadGroupRow(super1Id, ungerProjectId, "Super1")
+    val super2grp = LoadGroupRow(super2Id, ungerProjectId, "Super2")
+
     createInTransaction("Create group table", groups.schema.create)
 
     insertInTransaction("Populate group table",
       groups += brkRoom
       , groups += allCans
       , groups += all
+
+      //Test subgroups
+      , groups += super1grp
+      , groups += super2grp
+
       , groups.result.map(println)
     )
   }
