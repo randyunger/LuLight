@@ -1,16 +1,14 @@
-package org.runger.lulight
+package org.runger.lulight.graph
 
 import java.io.File
 
 import org.neo4j.cypher.internal.ExecutionEngine
-import org.neo4j.graphdb.Label
+import org.neo4j.graphdb.{Label, Path, RelationshipType}
 import org.neo4j.graphdb.factory.GraphDatabaseFactory
-import org.neo4j.graphdb.RelationshipType
-import org.neo4j.graphdb.traversal.TraversalContext
+import org.neo4j.graphdb.traversal.{Evaluation, Evaluator}
 import org.specs2.mutable.Specification
 
 import scala.collection.JavaConverters._
-
 
 /**
   * Created by runger on 10/3/16.
@@ -18,8 +16,10 @@ import scala.collection.JavaConverters._
 class EmbeddedNeoTest extends Specification {
   "embedded neo" should {
     "new db" in {
-      val location = "/opt/neo4j"
+      val location = "/opt/neo4j/movieExample"
       val file = new File(location)
+      //Clear out directory/empty database
+      file.listFiles().foreach(f => f.delete())
 
       val params: java.util.Map[String, String] = new java.util.HashMap[String, String]
       params.put("allow_store_upgrade", "true")
@@ -49,7 +49,10 @@ class EmbeddedNeoTest extends Specification {
       silence.setProperty("Title", "The Silence of the Lambs")
 
       val mjb = graphDb.createNode(movie)
-      silence.setProperty("Title", "Meet Joe Black")
+      mjb.setProperty("Title", "Meet Joe Black")
+
+      val seven = graphDb.createNode(movie)
+      seven.setProperty("Title", "Se7en")
 
       val anthonyHopkins = graphDb.createNode(person)
       anthonyHopkins.setProperty("Name", "Anthony Hopkins")
@@ -63,9 +66,25 @@ class EmbeddedNeoTest extends Specification {
       val brad = graphDb.createNode(person)
       brad.setProperty("Name", "Brad Pit")
       brad.createRelationshipTo(mjb, actedIn)
+      brad.createRelationshipTo(seven, actedIn)
+
+      val morg = graphDb.createNode(person)
+      morg.setProperty("Name", "Morgan Freeman")
+      morg.createRelationshipTo(seven, actedIn)
+
+      val eval = new Evaluator {
+        override def evaluate(path: Path): Evaluation = {
+          if(path.length() == 2) Evaluation.INCLUDE_AND_PRUNE
+          else Evaluation.EXCLUDE_AND_PRUNE
+//          else
+//          if(path.endNode().hasLabel(person)) Evaluation.INCLUDE_AND_CONTINUE
+//          else Evaluation.EXCLUDE_AND_PRUNE
+        }
+      }
 
       val res = graphDb.traversalDescription()
         .breadthFirst()
+        .evaluator(eval)
         .relationships(actedIn)
         .traverse(anthonyHopkins)
 
@@ -74,11 +93,36 @@ class EmbeddedNeoTest extends Specification {
       sRes.foreach(node => {
         val props = node.getAllProperties.asScala
         val pStr = props.mkString("::")
-        println(pStr)
+        println(s"${node.getLabels.asScala.mkString("::")} $pStr")
       })
 
-      val engine = new ExecutionEngine(graphDb)
+//      println("Here's the same output via Cypher:\n")
 
+      def queryByName(actorName: String) = {
+        val query = s"""
+                      |MATCH (p: Person {Name:"$actorName"}) - [:ActedIn] -> (m:Movie) <- [:ActedIn] - (coActor: Person)
+                      |RETURN m.Title, coActor.Name
+                    """.stripMargin
+
+        val cRes = graphDb.execute(query)
+
+        //      cRes.asScala.foreach(um => um.asScala.foreach{case (k,v) => {
+        //        println(s"$k $v")
+        //      }})
+
+        println(s"$actorName costars:")
+
+        cRes.asScala.foreach(resMapJ => {
+          val resMap = resMapJ.asScala
+          val coStar = resMap.getOrElse("coActor.Name","")
+          val movieTitle = resMap.getOrElse("m.Title","")
+          println(s"$coStar in $movieTitle")
+        })
+      }
+
+      queryByName("Brad Pit")
+
+      tx.success()
       tx.close()
 
       ok

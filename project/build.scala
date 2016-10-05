@@ -89,6 +89,7 @@ object LuLightBuild extends Build {
 //        ,"postgresql" % "postgresql" % "9.1-901.jdbc4"
         ,"org.postgresql" % "postgresql" % "9.4.1211"
         ,"org.anormcypher" %% "anormcypher" % "0.9.1"
+        ,"org.neo4j.driver" % "neo4j-java-driver" % "1.0.5"
         ,"org.neo4j" % "neo4j" % "3.0.6"
 
       ),

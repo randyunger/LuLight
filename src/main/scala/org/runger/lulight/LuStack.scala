@@ -9,6 +9,7 @@ import org.fusesource.scalate.layout.DefaultLayoutStrategy
 import javax.servlet.http.HttpServletRequest
 
 import ch.qos.logback.classic.LoggerContext
+import org.runger.lulight.graph.Graph
 import org.runger.lulight.lambda.LambdaHandler
 import org.slf4j.LoggerFactory
 import org.slf4j.helpers.SubstituteLoggerFactory
@@ -34,6 +35,10 @@ class LuServletContextListener extends ServletContextListener with Logging {
   override def contextDestroyed(sce: ServletContextEvent): Unit = {}
 
   override def contextInitialized(sce: ServletContextEvent): Unit = {
+
+    //Load object Graph
+    logger.info("Loading graph")
+//    Graph()
 
     //Load initial state
     logger.info("Getting initial state")
