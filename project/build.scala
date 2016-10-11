@@ -10,7 +10,7 @@ import com.gilt.aws.lambda.{AwsLambdaPlugin, _}
 
 object LuLightBuild extends Build {
   val Name = "LuLight"
-  val ScalaVersion = "2.11.6"
+  val ScalaVersion = "2.11.8"
   val ScalatraVersion = "2.4.0-RC2-2"
   val jettyVersion = "9.3.5.v20151012"
 

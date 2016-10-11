@@ -1,11 +1,12 @@
-package org.runger.lulight
+package org.runger.lulight.servlet
 
+import org.runger.lulight._
 import org.scalatra._
 import play.api.libs.json.Json
 import scalate.ScalateSupport
-import Utils._
+import org.runger.lulight.Utils._
 
-class LutronServlet extends LuStack with Logging {
+class LutronServlet extends LuStack with LuGroupsServlet with Logging {
 
   get("/") {
     <html>

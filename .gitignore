@@ -5,6 +5,13 @@
 *.swp
 *.out
 
+#GRadle
+.gradle
+*.lck
+gradle
+gradlew.bat
+build.gradle.bak
+
 # rails specific
 *.sqlite3
 config/database.yml

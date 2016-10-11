@@ -1,7 +1,8 @@
 
-import org.runger.lulight.LutronServlet
 import org.scalatra._
 import javax.servlet.ServletContext
+
+import org.runger.lulight.servlet.LutronServlet
 
 class ScalatraBootstrap extends LifeCycle {
 
