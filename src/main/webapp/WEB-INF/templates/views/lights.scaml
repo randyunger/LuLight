@@ -1,0 +1,27 @@
+- import org.runger.lulight.LightingLoad
+- import org.runger.lulight.LoadSet
+- import org.runger.lulight.LoadState
+- import org.runger.lulight.ConcMap
+- import org.runger.lulight.BulbType
+- import org.runger.lulight.FilterSet
+- import org.runger.lulight.SceneSet
+
+
+-@ val allLoads: LoadSet
+
+%h2
+    Lights
+
+- for(load <- allLoads.loads.toList.sortBy(_.longName))
+    .load
+        %span.name
+            #{load.longName}
+        %span.id
+            #{load.id}
+        %span.level
+            #{load.state.map(_.level.toInt.toString).getOrElse("?")}
+        %span.slider
+            %input.range(type="range" name={load.id} id={"range"+load.id} value={load.state.map(_.level).getOrElse(0)})
+
+%script(type="text/javascript" src="js/jquery-2.1.4.min.js")
+%script(type="text/javascript" src="js/loads.js")

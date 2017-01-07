@@ -10,16 +10,11 @@
 
 - attributes("title") = "QuickGroups - LuLight"
 
-
-.left
-    - render("scenes.scaml")
-    - render("groups.scaml")
-
-.right
-    - render("lights.scaml", Map("allLoads" -> allLoads))
-    - render("history.scaml")
+- render("scenes.scaml")
+- render("lights.scaml", Map("allLoads" -> allLoads))
+- render("history.scaml")
 
 
-%link{:href => "css/quickGroups.css", :rel => :stylesheet}
+
 %script(type="text/javascript" src="js/jquery-2.1.4.min.js")
 

@@ -1,0 +1,20 @@
+- import org.runger.lulight.LightingLoad
+- import org.runger.lulight.LoadSet
+- import org.runger.lulight.LoadState
+- import org.runger.lulight.ConcMap
+- import org.runger.lulight.BulbType
+- import org.runger.lulight.FilterSet
+- import org.runger.lulight.SceneSet
+- import org.runger.lulight.GroupSet
+- import org.runger.lulight.Group
+
+
+-@ val allGroups: GroupSet
+
+%h2
+    Groups
+
+- for(group <- allGroups.byName)
+    .group
+        %span.name
+            #{group.name}

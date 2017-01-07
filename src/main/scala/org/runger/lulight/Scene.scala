@@ -42,6 +42,8 @@ case class SceneSet(scenes: Set[Scene]) {
   def get(label: String) = scenes.find(_.label == label)
 }
 
+
+//A Scene has its level stored in the State data of it's Lighting Loads
 case class Scene(label: String, loads:LoadSet) extends Logging {
   def execute(excutor: String => Unit) = {
     val loadStates = loads.loads.map(load => {

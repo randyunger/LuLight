@@ -33,6 +33,8 @@ case class LoadSet(loads: Set[LightingLoad]) {
 
   val byId = loads.map(l => l.id -> l).toMap
 
+  val nonZeros = loads.filter(ll => ll.state.exists(_.level!=0))
+
 //  def filterBy(fs: FilterSet) = {
 //    val filteredLoads = loads.filter(ll => {
 //      fs.bulbTypes.map(allowed => ll.meta.exists(load => load.bulb == allowed)).getOrElse(true) &&
@@ -42,6 +44,7 @@ case class LoadSet(loads: Set[LightingLoad]) {
 //    LoadSet(filteredLoads)
 //  }
 
+  //Get state from cache if available
   def withState = LoadSet(loads.map(LuStateTracker().withState))
 }
 
@@ -74,6 +77,7 @@ case class LightingLoad(id: Int, areaName: String, outputName: String, meta: Opt
     }
     this.copy(state = Some(newState))
   }
+  val longName = s"$areaName - $outputName"
 }
 
 object LuConfig extends Logging {

@@ -7,7 +7,7 @@ $(document).ready(function(){
         $(this).parent().siblings(".level").text(this.value);
 
         var url= "set/" + this.name + "/" + this.value;
-
+        console.log("Setting light: " + url);
         $.ajax({
             url: url,
             type: 'POST'
@@ -63,7 +63,7 @@ function setRangesFromState(state) {
 
 function setRangeFromLoadState(loadState) {
     var id = loadState.id;
-    var level = loadState.level;
+    var level = Math.round(loadState.level);
     var rangeId = "#range" + id;
 
     $(rangeId).each(function(ix, slider){
@@ -90,7 +90,7 @@ $(document).ready(function(){
 $(document).ready(function(){
     // Create a client instance
     //var client = new Paho.MQTT.Client(location.hostname, Number(location.port), "clientId");
-    console.log("Booting Paho")
+    console.log("Booting Paho");
     var client = new Paho.MQTT.Client("black-pearl", 8888, "jsClient-123");
 
 // set callback handlers

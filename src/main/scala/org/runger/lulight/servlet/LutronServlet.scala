@@ -65,7 +65,7 @@ class LutronServlet extends LuStack with LuGroupsServlet with Logging {
   //Deprecated
   get("/loads") {
     contentType="text/html"
-    val loadSetWState = LuConfig().storedConfig.withState
+    val loadSetWState = LuConfig().storedConfig//.withState
     val byArea = loadSetWState.loads.groupBy(_.areaName)
     val fullState = LuStateTracker().fullState(CommandExecutor().execute, 3, 1000).toMap
     val fullStateById = fullState.map{ case(k, v) => (k.id.toString, v)}

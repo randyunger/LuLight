@@ -16,6 +16,8 @@ import org.slf4j.helpers.SubstituteLoggerFactory
 import play.api.libs.json.{JsValue, Json}
 import org.runger.lulight.lambda.model.HomeSkillFormats._
 
+import scala.concurrent.Future
+
 trait LuStack extends ScalatraServlet with ScalateSupport {
 
   notFound {
@@ -41,9 +43,12 @@ class LuServletContextListener extends ServletContextListener with Logging {
 //    Graph()
 
     //Load initial state
-    logger.info("Getting initial state")
-    val fullState = LuStateTracker().fullState(CommandExecutor().execute, 3, 1000).toMap
-    fullState
+    import scala.concurrent.ExecutionContext.Implicits.global
+    Future {
+      logger.info("Getting initial state")
+      val fullState = LuStateTracker().fullState(CommandExecutor().execute, 3, 1000).toMap
+      fullState
+    }
 
     //Connect to Aws
     logger.info("Connecting to AWS MQTT")

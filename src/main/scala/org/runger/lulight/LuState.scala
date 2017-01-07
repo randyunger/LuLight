@@ -60,9 +60,11 @@ class LuStateTracker(config: LoadSet) extends Logging {
     val stO = Some(LoadState(load.id, (math.random*100).toFloat, DateTime.now()))
 //    val st0 = state.get(load)
 
+    val foundState = LuStateTracker().state.get(load)
+
     //Keep old state if state not found in map
-    val newState = stO orElse load.state
-    load.copy(state = newState)
+//    val newState = foundState //stO orElse load.state
+    load.copy(state = foundState)
   }
 
   def update(line: String) = {
