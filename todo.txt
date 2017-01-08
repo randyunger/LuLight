@@ -1,3 +1,8 @@
+New TODOs:
+- Page loads with sliders in right position
+
+
+----
 Faster page load
     Don't query state every page load. (Permacache fullstate)
 

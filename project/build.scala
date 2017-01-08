@@ -15,7 +15,7 @@ object LuLightBuild extends Build {
   val jettyVersion = "9.3.5.v20151012"
 
   lazy val commonSettings = Seq(
-    version := "0.2.1",
+    version := "0.2.3",
     organization := "org.runger.lulight",
     scalaVersion := ScalaVersion
   )
