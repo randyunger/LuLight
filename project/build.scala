@@ -15,7 +15,7 @@ object LuLightBuild extends Build {
   val jettyVersion = "9.3.5.v20151012"
 
   lazy val commonSettings = Seq(
-    version := "0.2.3",
+    version := "0.2.6",
     organization := "org.runger.lulight",
     scalaVersion := ScalaVersion
   )
@@ -89,8 +89,8 @@ object LuLightBuild extends Build {
 //        ,"postgresql" % "postgresql" % "9.1-901.jdbc4"
         ,"org.postgresql" % "postgresql" % "9.4.1211"
         ,"org.anormcypher" %% "anormcypher" % "0.9.1"
-        ,"org.neo4j.driver" % "neo4j-java-driver" % "1.0.5"
-        ,"org.neo4j" % "neo4j" % "3.0.6"
+        ,"org.neo4j.driver" % "neo4j-java-driver" % "1.1.0"
+        ,"org.neo4j" % "neo4j" % "3.1.0"
 
       ),
       scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>

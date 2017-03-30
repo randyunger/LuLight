@@ -51,10 +51,16 @@ class LuServletContextListener extends ServletContextListener with Logging {
     }
 
     //Connect to Aws
-    logger.info("Connecting to AWS MQTT")
-    val handler = new LambdaPiSide
-    handler.initPiSideHandler()
-    handler.publishRetainedDeviceList()
+    try {
+      logger.info("Connecting to AWS MQTT")
+      val handler = new LambdaPiSide
+      handler.initPiSideHandler()
+      handler.publishRetainedDeviceList()
+    } catch {
+      case ex: Exception => {
+        logger.error("Error connecting to AWS!", ex)
+      }
+    }
 
   }
 }

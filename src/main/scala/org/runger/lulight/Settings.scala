@@ -35,5 +35,5 @@ class FileSettings extends HardSettings {
 
   override val fakeTelnet = false
   override val moquetteHost = "tcp://pi1:1883"
-  override val mosquittoHostAws = "tcp://52.44.173.143:1883" //prev: "tcp://52.6.125.250:80"
+  override val mosquittoHostAws = "tcp://52.203.59.18:1883" //prev: "tcp://52.6.125.250:80"
 }
