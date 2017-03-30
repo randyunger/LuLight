@@ -5,6 +5,7 @@ import org.scalatra.sbt.PluginKeys._
 import com.mojolly.scalate.ScalatePlugin._
 import ScalateKeys._
 import com.gilt.aws.lambda.{AwsLambdaPlugin, _}
+import sbtassembly.{MergeStrategy, PathList}
 //import sbtassembly.AssemblyKeys._
 //import sbtassembly.AssemblyPlugin.autoImport._
 
@@ -15,12 +16,41 @@ object LuLightBuild extends Build {
   val jettyVersion = "9.3.5.v20151012"
 
   lazy val commonSettings = Seq(
-    version := "0.2.6",
+    version := "0.2.7",
     organization := "org.runger.lulight",
     scalaVersion := ScalaVersion
   )
 
   import AwsLambdaPlugin.autoImport._
+  import sbtassembly.AssemblyKeys._
+
+//  lazy val assemblySettings = Seq(
+//    assemblyMergeStrategy in assembly <<= (mergeStrategy in assembly) { (old) => {
+//      case PathList("javax", "servlet", xs @ _*)         => MergeStrategy.first
+//      case PathList("javax", "transaction", xs @ _*)     => MergeStrategy.first
+//      case PathList("javax", "mail", xs @ _*)     => MergeStrategy.first
+//      case PathList("javax", "activation", xs @ _*)     => MergeStrategy.first
+//      case PathList(ps @ _*) if ps.last endsWith ".html" => MergeStrategy.first
+//      case "application.conf" => MergeStrategy.concat
+//      case "unwanted.txt"     => MergeStrategy.discard
+//      case x => old(x)
+//    }}
+//  )
+
+  lazy val assemblySettings = Seq(
+    assemblyMergeStrategy in assembly := {
+    case PathList("javax", "servlet", xs @ _*)         => MergeStrategy.first
+    case PathList(ps @ _*) if ps.last endsWith ".html" => MergeStrategy.first
+    case "application.conf"                            => MergeStrategy.concat
+    case "unwanted.txt"                                => MergeStrategy.discard
+    case "LICENSES.txt"                                => MergeStrategy.discard
+    case x =>
+      val oldStrategy = (assemblyMergeStrategy in assembly).value
+      oldStrategy(x)
+    }
+  )
+
+
   lazy val lambdaSettings = Seq(
 
     AwsLambdaPlugin.autoImport.lambdaHandlers := Seq(
@@ -49,7 +79,7 @@ object LuLightBuild extends Build {
   lazy val project = Project (
     "LuLight",
     file("."),
-    settings = lambdaSettings ++ ScalatraPlugin.scalatraSettings ++ scalateSettings ++ commonSettings ++ Seq(
+    settings = assemblySettings ++ lambdaSettings ++ ScalatraPlugin.scalatraSettings ++ scalateSettings ++ commonSettings ++ Seq(
       //      organization := Organization,
       name := Name,
       //      version := Version,
@@ -88,9 +118,9 @@ object LuLightBuild extends Build {
         ,"com.h2database" % "h2" % "1.4.191"
 //        ,"postgresql" % "postgresql" % "9.1-901.jdbc4"
         ,"org.postgresql" % "postgresql" % "9.4.1211"
-        ,"org.anormcypher" %% "anormcypher" % "0.9.1"
-        ,"org.neo4j.driver" % "neo4j-java-driver" % "1.1.0"
-        ,"org.neo4j" % "neo4j" % "3.1.0"
+//        ,"org.anormcypher" %% "anormcypher" % "0.9.1"
+//        ,"org.neo4j.driver" % "neo4j-java-driver" % "1.1.0"
+//        ,"org.neo4j" % "neo4j" % "3.1.0"
 
       ),
       scalateTemplateConfig in Compile <<= (sourceDirectory in Compile){ base =>
