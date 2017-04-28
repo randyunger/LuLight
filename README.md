@@ -1,9 +1,9 @@
-# Lu #
+# LuLight #
 
 ## Build & Run ##
 
 ```sh
-$ cd Lu
+$ cd LuLight
 $ ./sbt
 > container:start
 > browse
