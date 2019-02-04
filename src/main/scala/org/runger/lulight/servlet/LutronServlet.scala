@@ -12,7 +12,13 @@ class LutronServlet extends LuStack with LuGroupsServlet with Logging {
     <html>
       <body>
         <h1>Hello, world!</h1>
-        Say <a href="hello-scalate">hello to Scalate</a>.
+        Say <a href="hello-scalate">hello to Scalate</a>.<br/>
+
+        Links: <br/>
+        <a href="all">All</a><br/>
+        <!--a href="hello-scalate">hello to Scalate</a><br/>
+        <a href="hello-scalate">hello to Scalate</a><br/>
+        <a href="hello-scalate">hello to Scalate</a><br/-->
       </body>
     </html>
   }

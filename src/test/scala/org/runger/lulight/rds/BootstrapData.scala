@@ -153,7 +153,7 @@ object BootstrapData extends App {
       ), Duration.Inf)
     } catch {
       case ex: Exception if ex.getMessage.contains("already exists") => println(s" already exists")
-      case ex => ex.printStackTrace()
+      case ex: Throwable => ex.printStackTrace()
     }
   }
 
@@ -167,7 +167,7 @@ object BootstrapData extends App {
         ), Duration.Inf)
       } catch {
         case ex: Exception if ex.getMessage.contains("already exists") => println(s" already exists")
-        case ex => ex.printStackTrace()
+        case ex: Throwable => ex.printStackTrace()
       }
     })
   }

@@ -1,6 +1,7 @@
 New TODOs:
-- Page loads with sliders in right position
-
+- Should setup DNS on rpi to resolve naming issue permanently. Not every client is running mDNS.
+- Not working with Alexa
+- Not loading state right initially on rpi, but is loading properly on localhost?!
 
 ----
 Faster page load

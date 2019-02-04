@@ -19,10 +19,10 @@ class MqttToAws extends Specification with Logging {
   "Mqtt to Aws mosquitto" should {
     "pub" in {
 
-      skipped
+      //skipped
 
       println("Opening connection")
-      val client = new Mqtt("tcp://52.44.173.143:1883", "mosqClient")
+      val client = new Mqtt(Settings().mosquittoHostAws, "mosqClient")
       println("Connection opened")
 
       client.subscribe("something", (t, m) => println(s"t: $t m: $m "))
